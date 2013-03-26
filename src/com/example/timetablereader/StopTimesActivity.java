@@ -44,6 +44,7 @@ public class StopTimesActivity extends Activity {
 
 	    	//String xml = writeXml();
 	    	Log.d("TimetableReader", "readStopTimes!");
+	    	System.out.println("read stop times");
 
 
     	} catch (Throwable t){
