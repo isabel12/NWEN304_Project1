@@ -5,6 +5,12 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import android.annotation.TargetApi;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.os.StrictMode;
 
 public abstract class BaseFeedParser implements FeedParser {
 	// names of the XML tags
@@ -23,8 +29,9 @@ public abstract class BaseFeedParser implements FeedParser {
 	static final String STOP_LON = "Stop lon";
 
 	private final URL feedUrl;
+	
 
-	protected BaseFeedParser(String feedUrl){
+	protected BaseFeedParser(String feedUrl){		
 		try {
 			this.feedUrl = new URL(feedUrl);
 		} catch (MalformedURLException e) {
@@ -33,12 +40,31 @@ public abstract class BaseFeedParser implements FeedParser {
 	}
 
 	protected InputStream getInputStream() {
+		AsyncTask<URL, Void, InputStream> task = new GetInputStream().execute(feedUrl);
 		try {
-			return feedUrl.openConnection().getInputStream();
-		} catch (IOException e) {
+			return task.get();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	public abstract List<StopTime> parse();
+	
+	
+	class GetInputStream extends AsyncTask<URL, Void, InputStream> {
+
+		@Override
+		protected InputStream doInBackground(URL... feedUrls) {
+			try {
+				return feedUrls[0].openConnection().getInputStream();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+	}
+
+	
 }
