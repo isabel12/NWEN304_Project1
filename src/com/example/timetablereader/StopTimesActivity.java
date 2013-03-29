@@ -4,7 +4,12 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+
 import org.xmlpull.v1.XmlSerializer;
+
+import com.example.timetablereader.Objects.StopTime;
+import com.example.timetablereader.XMLParsing.FeedParser;
+import com.example.timetablereader.XMLParsing.XMLPullFeedParser;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -12,6 +17,8 @@ import android.util.Log;
 import android.util.Xml;
 import android.view.Menu;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 
 public class StopTimesActivity extends Activity {
 
@@ -22,9 +29,9 @@ public class StopTimesActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {	
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_stop_times);
-        
+     
         loadStopTimes();
+        displayTripStopTimes(2, 53832, true);
     }
 
 
@@ -41,14 +48,45 @@ public class StopTimesActivity extends Activity {
     	try{
 
 	    	FeedParser parser = (FeedParser) new XMLPullFeedParser(STOP_TIMES_URL);
-	    	stopTimes = parser.parse();
+	    	stopTimes = parser.parseStopTimes();
 
 	    	//String xml = writeXml();
-	    	Log.d("TimetableReader", "readStopTimes!");
+	    	Log.d("TimetableReader", "stop times read - " + stopTimes.size());
     	} catch (Throwable t){
     		Log.e("TimetableReader",t.getMessage(),t);
     	}
     }
+	
+	private void displayTripStopTimes(int routeId, int tripId, boolean outbound ){
+        setContentView(R.layout.activity_stop_times);
+        TextView t=new TextView(this); 
+        t=(TextView)findViewById(R.id.route_id); 
+        t.setText("Route id is " + routeId);
+        
+        t=(TextView)findViewById(R.id.trip_id); 
+        t.setText("Trip id is " + tripId);
+			
+		// get list of all stoptimes applicable
+        List<String> toDisplay = new ArrayList<String>();
+        for(StopTime s: this.stopTimes){
+        	Log.d("TimetableReader", s.toString());        	  	
+        	if (s.getRouteId() == routeId && s.getTripId() == tripId && s.isOutbound()){
+        		String message = "" + s.getStopId();
+        		
+        		toDisplay.add(message);
+        	}
+        }
+        Log.d("TimetableReader", "found applicable stoptimes - " + toDisplay.size());
+        
+        
+        // display them
+        ArrayAdapter<String> adapter = 
+	    		new ArrayAdapter<String>(this, R.layout.row,toDisplay);           
+        ListView myList=(ListView)findViewById(R.id.stop_list);
+        myList.setAdapter(adapter);
+       
+        
+	}
 
 
 
