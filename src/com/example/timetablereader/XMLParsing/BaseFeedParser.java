@@ -14,24 +14,26 @@ import android.os.StrictMode;
 
 public abstract class BaseFeedParser implements FeedParser {
 	// names of the XML tags
-	static final String DOCUMENT = "document";
-	static final String RECORD = "record";
+	public static final String DOCUMENT = "document";
+	public static final String RECORD = "record";
 
-	static final String ROUTE_ID = "route_id";
-	static final String TRIP_ID = "trip_id";
-	static final String DIRECTION_ID = "direction_id";
-	static final String ARRIVAL_TIME = "arrival_time";
-	static final String DEPARTURE_TIME = "departure_time";
-	static final String STOP_ID = "stop_id";
-	static final String STOP_SEQUENCE = "stop_sequence";
-	static final String STOP_NAME = "stop_name";
-	static final String STOP_LAT = "stop_lat";
-	static final String STOP_LON = "stop_lon";
+	public static final String ROUTE_ID = "route_id";
+	public static final String TRIP_ID = "trip_id";
+	public static final String DIRECTION_ID = "direction_id";
+	public static final String ARRIVAL_TIME = "arrival_time";
+	public static final String DEPARTURE_TIME = "departure_time";
+	public static final String STOP_ID = "stop_id";
+	public static final String STOP_SEQUENCE = "stop_sequence";
+	public static final String STOP_NAME = "stop_name";
+	public static final String STOP_LAT = "stop_lat";
+	public static final String STOP_LON = "stop_lon";
+	public static final String AGENCY_ID = "agency_id";
+	public static final String ROUTE_NAME = "route_long_name";
 
-	private final URL feedUrl;
+	private URL feedUrl;
 	
-
-	protected BaseFeedParser(String feedUrl){		
+	
+	protected void SetUrl(String feedUrl){
 		try {
 			this.feedUrl = new URL(feedUrl);
 		} catch (MalformedURLException e) {

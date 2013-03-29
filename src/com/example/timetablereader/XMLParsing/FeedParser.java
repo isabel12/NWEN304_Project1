@@ -1,5 +1,6 @@
 package com.example.timetablereader.XMLParsing;
 
+import java.io.InputStream;
 import java.util.List;
 
 import com.example.timetablereader.Objects.Route;
@@ -9,12 +10,13 @@ import com.example.timetablereader.Objects.Trip;
 
 public interface FeedParser {
 
-	List<StopTime> parseStopTimes();
+	List<StopTime> parseStopTimes(String feedUrl);
 	
-	List<Stop> parseStops();
+	List<Stop> parseStops(String feedUrl);
+	List<Stop> parseStops(InputStream inputStream);
 	
-	List<Trip> parseTrips();
+	List<Trip> parseTrips(String feedUrl);
 	
-	List<Route> parseRoutes();
+	List<Route> parseRoutes(String feedUrl);
 
 }

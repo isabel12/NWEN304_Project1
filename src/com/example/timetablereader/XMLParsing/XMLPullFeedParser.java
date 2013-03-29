@@ -20,13 +20,25 @@ import android.util.Xml;
 
 public class XMLPullFeedParser extends BaseFeedParser {
 
-	public XMLPullFeedParser(String feedUrl) {
-		super(feedUrl);
-	}
 
-	public List<StopTime> parseStopTimes() {	
+	public List<StopTime> parseStopTimes(String feedUrl) {	
+		super.SetUrl(feedUrl);
+		
 		try {
-			AsyncTask<InputStream, Void, List<StopTime>> parseTask = new ParseRSSTask().execute(getInputStream());
+			AsyncTask<InputStream, Void, List<StopTime>> parseTask = new ParseStopTimesTask().execute(getInputStream());
+			return parseTask.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public List<StopTime> parseStopTimes(InputStream inputStream){
+		try {
+			AsyncTask<InputStream, Void, List<StopTime>> parseTask = new ParseStopTimesTask().execute(inputStream);
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -38,24 +50,69 @@ public class XMLPullFeedParser extends BaseFeedParser {
 	}
 	
 	@Override
-	public List<Stop> parseStops() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Stop> parseStops(String feedUrl) {
+		super.SetUrl(feedUrl);
+		
+		try {
+			AsyncTask<InputStream, Void, List<Stop>> parseTask = new ParseStopsTask().execute(getInputStream());
+			return parseTask.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public List<Stop> parseStops(InputStream inputStream){
+		try {
+			AsyncTask<InputStream, Void, List<Stop>> parseTask = new ParseStopsTask().execute(inputStream);
+			return parseTask.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
+	}
+	
+
+	@Override
+	public List<Trip> parseTrips(String feedUrl) {
+		super.SetUrl(feedUrl);
+		
+		try {
+			AsyncTask<InputStream, Void, List<Trip>> parseTask = new ParseTripsTask().execute(getInputStream());
+			return parseTask.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
-	public List<Trip> parseTrips() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<Route> parseRoutes() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Route> parseRoutes(String feedUrl) {
+		super.SetUrl(feedUrl);
+		
+		try {
+			AsyncTask<InputStream, Void, List<Route>> parseTask = new ParseRoutesTask().execute(getInputStream());
+			return parseTask.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
 	}	
 	
-	class ParseRSSTask extends AsyncTask<InputStream, Void, List<StopTime>> {
+	
+	private class ParseStopTimesTask extends AsyncTask<InputStream, Void, List<StopTime>> {
 
 		@Override
 		protected List<StopTime> doInBackground(InputStream... inputStreams) {
@@ -120,12 +177,179 @@ public class XMLPullFeedParser extends BaseFeedParser {
 			// return the stop times
 			return stopTimes;			
 		}
-		
-		
-		
 	}
+	
+	
+	private class ParseStopsTask extends AsyncTask<InputStream, Void, List<Stop>> {
 
+		@Override
+		protected List<Stop> doInBackground(InputStream... inputStreams) {
+			// list of stop times
+			List<Stop> stops = null;
 
+			XmlPullParser parser = Xml.newPullParser();
+			try {
+				// auto-detect the encoding from the stream
+				parser.setInput(inputStreams[0], null);
+				int eventType = parser.getEventType();
+				
+				
+				Stop currentStop = null;
+				boolean done = false;
+				while (eventType != XmlPullParser.END_DOCUMENT && !done){
+					String name = null;
+					switch (eventType){
+						case XmlPullParser.START_DOCUMENT:
+							stops = new ArrayList<Stop>();
+							break;
+						case XmlPullParser.START_TAG:					
+							name = parser.getName();
+							if (name.equalsIgnoreCase(RECORD)){
+								currentStop = new Stop();
+							} else if (currentStop != null){
+								if (name.equalsIgnoreCase(STOP_ID)){									
+									currentStop.setStopId(Integer.parseInt(parser.nextText()));
+								} else if (name.equalsIgnoreCase(STOP_NAME)){
+									currentStop.setStopName(parser.nextText());
+								} else if (name.equalsIgnoreCase(STOP_LAT)){
+									currentStop.setStopLat(Double.parseDouble(parser.nextText()));
+								} else if (name.equalsIgnoreCase(STOP_LON)){
+									currentStop.setStopLon(Double.parseDouble(parser.nextText()));
+								} 
+							}
+							break;
+						case XmlPullParser.END_TAG:
+							name = parser.getName();
+							if (name.equalsIgnoreCase(RECORD) && currentStop != null){
+								stops.add(currentStop);
+							} else if (name.equalsIgnoreCase(DOCUMENT)){
+								done = true;
+							}
+							break;
+					}
+					eventType = parser.next();
+				}
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+			
+			// return the stops
+			return stops;			
+		}
+	}
+	
+	
+	private class ParseTripsTask extends AsyncTask<InputStream, Void, List<Trip>> {
 
+		@Override
+		protected List<Trip> doInBackground(InputStream... inputStreams) {
+			// list of trips
+			List<Trip> trips = null;
 
+			XmlPullParser parser = Xml.newPullParser();
+			try {
+				// auto-detect the encoding from the stream
+				parser.setInput(inputStreams[0], null);
+				int eventType = parser.getEventType();			
+				Trip currentTrip = null;
+				boolean done = false;
+				while (eventType != XmlPullParser.END_DOCUMENT && !done){
+					String name = null;
+					switch (eventType){
+						case XmlPullParser.START_DOCUMENT:
+							trips = new ArrayList<Trip>();
+							break;
+						case XmlPullParser.START_TAG:					
+							name = parser.getName();
+							if (name.equalsIgnoreCase(RECORD)){
+								currentTrip = new Trip();
+							} else if (currentTrip != null){
+								if (name.equalsIgnoreCase(ROUTE_ID)){									
+									currentTrip.setRouteId(Integer.parseInt(parser.nextText()));
+								} else if (name.equalsIgnoreCase(TRIP_ID)){
+									currentTrip.setTripId(Integer.parseInt(parser.nextText()));
+								} else if (name.equalsIgnoreCase(DIRECTION_ID)){
+									String dirId = parser.nextText().trim();
+									if (dirId.equals("0")){
+										currentTrip.setOutbound(true);
+									}else
+										currentTrip.setOutbound(false);
+								} 		
+							}
+							break;
+						case XmlPullParser.END_TAG:
+							name = parser.getName();
+							if (name.equalsIgnoreCase(RECORD) && currentTrip != null){
+								trips.add(currentTrip);
+							} else if (name.equalsIgnoreCase(DOCUMENT)){
+								done = true;
+							}
+							break;
+					}
+					eventType = parser.next();
+				}
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+			
+			// return the trips
+			return trips;			
+		}
+	}
+	
+	
+	private class ParseRoutesTask extends AsyncTask<InputStream, Void, List<Route>> {
+
+		@Override
+		protected List<Route> doInBackground(InputStream... inputStreams) {
+			// list of trips
+			List<Route> routes = null;
+
+			XmlPullParser parser = Xml.newPullParser();
+			try {
+				// auto-detect the encoding from the stream
+				parser.setInput(inputStreams[0], null);
+				int eventType = parser.getEventType();			
+				Route currentRoute = null;
+				boolean done = false;
+				while (eventType != XmlPullParser.END_DOCUMENT && !done){
+					String name = null;
+					switch (eventType){
+						case XmlPullParser.START_DOCUMENT:
+							routes = new ArrayList<Route>();
+							break;
+						case XmlPullParser.START_TAG:					
+							name = parser.getName();
+							if (name.equalsIgnoreCase(RECORD)){
+								currentRoute = new Route();
+							} else if (currentRoute != null){
+								if (name.equalsIgnoreCase(ROUTE_ID)){									
+									currentRoute.setRouteId(Integer.parseInt(parser.nextText()));
+								} else if (name.equalsIgnoreCase(AGENCY_ID)){
+									currentRoute.setAgency(parser.nextText());
+								} else if (name.equalsIgnoreCase(ROUTE_NAME)){
+									currentRoute.setName(parser.nextText());	
+								}
+							}
+							break;
+						case XmlPullParser.END_TAG:
+							name = parser.getName();
+							if (name.equalsIgnoreCase(RECORD) && currentRoute != null){
+								routes.add(currentRoute);
+							} else if (name.equalsIgnoreCase(DOCUMENT)){
+								done = true;
+							}
+							break;
+					}
+					eventType = parser.next();
+				}
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+			
+			// return the routes
+			return routes;			
+		}
+	}
+	
 }
