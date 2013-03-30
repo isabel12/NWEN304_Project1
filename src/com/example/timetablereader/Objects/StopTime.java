@@ -35,8 +35,8 @@ public class StopTime implements Comparable<StopTime>{
 	public void setOutbound(boolean outbound) {
 		this.outbound = outbound;
 	}
-	public Date getArrivalTime() {
-		return arrivalTime;
+	public String getArrivalTime() {
+		return FORMATTER.format(arrivalTime);
 	}
 	public void setArrivalTime(String arrivalTime) {
 		try {
@@ -45,8 +45,8 @@ public class StopTime implements Comparable<StopTime>{
 			throw new RuntimeException(e);
 		}
 	}
-	public Date getDepartureTime() {
-		return departureTime;
+	public String getDepartureTime() {
+		return FORMATTER.format(departureTime);
 	}
 	public void setDepartureTime(String departureTime) {
 		try {

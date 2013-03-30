@@ -5,17 +5,13 @@
     android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/route_id"
-        android:layout_width="wrap_content"
+        android:id="@+id/title"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:background="#6699ff"
 	 />
-    
-     <TextView
-        android:id="@+id/trip_id"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-	 />
-     
+         
      <ListView android:id="@+id/stop_list" 
     	android:layout_width="wrap_content" 
     	android:layout_height="wrap_content"/>

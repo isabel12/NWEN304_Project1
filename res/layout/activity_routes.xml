@@ -1,0 +1,46 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/routes_title" 
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:background="#6699ff"/>
+    
+    <Spinner
+        android:id="@+id/routes_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <RadioGroup
+        android:id="@+id/radioGroup1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+        
+        <RadioButton
+            android:id="@+id/radioInbound"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/inbound" />
+
+        <RadioButton
+            android:id="@+id/radioOutbound"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/outbound" />
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/display_trips_button"
+        android:onClick="viewTrips" />
+    
+</LinearLayout>

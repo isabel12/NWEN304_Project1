@@ -3,6 +3,12 @@
 
     <string name="app_name">TimetableReader</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="inbound">Inbound</string>
+    <string name="outbound">Outbound</string>
+    <string name="routes_title">Routes</string>
+	<string name="display_trips_button">Display trips</string>
+    
+    <string name="title_activity_display_trips">DisplayTripsActivity</string>
+    <string name="title_activity_routes">RoutesActivity</string>
 
 </resources>

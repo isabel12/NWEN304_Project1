@@ -5,7 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 import org.xmlpull.v1.XmlSerializer;
@@ -26,6 +28,7 @@ import android.util.Xml;
 import android.view.Menu;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 public class StopTimesActivity extends Activity {
@@ -41,7 +44,7 @@ public class StopTimesActivity extends Activity {
 	
 	
 	private List<StopTime> stopTimes;
-	private List<Stop> stops;
+	private Map<Integer, Stop> stops;
 	private List<Route> routes;
 	private List<Trip> trips;
 
@@ -149,29 +152,30 @@ public class StopTimesActivity extends Activity {
 	private void displayTripStopTimes(int routeId, int tripId, boolean outbound ){
         setContentView(R.layout.activity_stop_times);
         TextView t=new TextView(this); 
-        t=(TextView)findViewById(R.id.route_id); 
-        t.setText("Route id is " + routeId);
+        t=(TextView)findViewById(R.id.title); 
+        t.setText("Route " + routeId + ", trip " + tripId);
+
         
-        t=(TextView)findViewById(R.id.trip_id); 
-        t.setText("Trip id is " + tripId);
-			
-		// get list of all stoptimes applicable
-        List<String> toDisplay = new ArrayList<String>();
-        for(StopTime s: this.stopTimes){      	  	
+        // build list to display
+        List<Map<String, Object>> stopsList = new ArrayList<Map<String, Object>>();
+        Map<String, Object> map = null;
+        for(StopTime s: this.stopTimes){    
         	if (s.getRouteId() == routeId && s.getTripId() == tripId && s.isOutbound()){
-        		toDisplay.add("" + s.getStopId());
+        		map = new HashMap<String, Object>(); 
+        		String stopName = stops.get(s.getStopId()).getStopName();
+        		map.put("stop_name", stopName);
+        		map.put("departure_time", s.getDepartureTime());
+        		stopsList.add(map);
         	}
         }
-        Log.d("TimetableReader", "found applicable stoptimes - " + toDisplay.size());
-        
         
         // display them
-        ArrayAdapter<String> adapter = 
-	    		new ArrayAdapter<String>(this, R.layout.row,toDisplay);           
+        String[] from = new String[]{"stop_name", "departure_time"};
+        int[] to = new int[]{R.id.stop_name, R.id.departure_time};       
+        SimpleAdapter adapter = new SimpleAdapter(this, stopsList, R.layout.row, from, to);
         ListView myList=(ListView)findViewById(R.id.stop_list);
         myList.setAdapter(adapter);
-       
-        
+                
 	}
 
 
@@ -183,7 +187,7 @@ public class StopTimesActivity extends Activity {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
 			serializer.startTag("", BaseFeedParser.DOCUMENT);		
-			for (Stop st: stops){
+			for (Stop st: stops.values()){
 				serializer.startTag("", BaseFeedParser.RECORD);
 				
 				serializer.startTag("", BaseFeedParser.STOP_ID);

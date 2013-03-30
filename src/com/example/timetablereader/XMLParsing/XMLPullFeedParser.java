@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -50,11 +52,11 @@ public class XMLPullFeedParser extends BaseFeedParser {
 	}
 	
 	@Override
-	public List<Stop> parseStops(String feedUrl) {
+	public Map<Integer, Stop> parseStops(String feedUrl) {
 		super.SetUrl(feedUrl);
 		
 		try {
-			AsyncTask<InputStream, Void, List<Stop>> parseTask = new ParseStopsTask().execute(getInputStream());
+			AsyncTask<InputStream, Void, Map<Integer, Stop>> parseTask = new ParseStopsTask().execute(getInputStream());
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -65,9 +67,9 @@ public class XMLPullFeedParser extends BaseFeedParser {
 		}
 	}
 	
-	public List<Stop> parseStops(InputStream inputStream){
+	public Map<Integer, Stop> parseStops(InputStream inputStream){
 		try {
-			AsyncTask<InputStream, Void, List<Stop>> parseTask = new ParseStopsTask().execute(inputStream);
+			AsyncTask<InputStream, Void, Map<Integer, Stop>> parseTask = new ParseStopsTask().execute(inputStream);
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -180,12 +182,12 @@ public class XMLPullFeedParser extends BaseFeedParser {
 	}
 	
 	
-	private class ParseStopsTask extends AsyncTask<InputStream, Void, List<Stop>> {
+	private class ParseStopsTask extends AsyncTask<InputStream, Void, Map<Integer, Stop>> {
 
 		@Override
-		protected List<Stop> doInBackground(InputStream... inputStreams) {
+		protected Map<Integer, Stop> doInBackground(InputStream... inputStreams) {
 			// list of stop times
-			List<Stop> stops = null;
+			Map<Integer, Stop> stops = null;
 
 			XmlPullParser parser = Xml.newPullParser();
 			try {
@@ -200,7 +202,7 @@ public class XMLPullFeedParser extends BaseFeedParser {
 					String name = null;
 					switch (eventType){
 						case XmlPullParser.START_DOCUMENT:
-							stops = new ArrayList<Stop>();
+							stops = new HashMap<Integer, Stop>();
 							break;
 						case XmlPullParser.START_TAG:					
 							name = parser.getName();
@@ -221,7 +223,7 @@ public class XMLPullFeedParser extends BaseFeedParser {
 						case XmlPullParser.END_TAG:
 							name = parser.getName();
 							if (name.equalsIgnoreCase(RECORD) && currentStop != null){
-								stops.add(currentStop);
+								stops.put(currentStop.getStopId(), currentStop);
 							} else if (name.equalsIgnoreCase(DOCUMENT)){
 								done = true;
 							}
