@@ -64,29 +64,29 @@ public class RoutesActivity extends Activity {
      * @param view
      */
     public void viewTrips(View view){
-//    	// the intent binds this view to the other view we want to display
-//    	Intent intent = new Intent(this, DisplayTripsActivity.class);
-//
-//    	// gets the route
-//    	Spinner spinner = (Spinner) findViewById(R.id.routes_spinner);
-//    	int routeIndex = spinner.getSelectedItemPosition();
-//    	Route route = routes.get(routeIndex);
-//
-//    	// get outbound
-//    	int outboundId = R.id.radioOutbound;
-//    	RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup1);
-//    	int radioButtonId = radioGroup.getCheckedRadioButtonId();
-//    	boolean outbound = (radioButtonId == outboundId);
-//
-//
-//    	// this is like adding the message to the viewbag of the new activity.
-//    	// Key-value pair
-//    	intent.putExtra(ROUTE_ID, route.getRouteId());
-//    	intent.putExtra(OUTBOUND, outbound);
-//
-//    	Log.d("TimetableReader", "Route=" + route.getRouteId() + ", outbound=" + outbound);
+    	// the intent binds this view to the other view we want to display
+    	Intent intent = new Intent(this, DisplayTripsActivity.class);
 
-    	Intent intent = new Intent(this, StopTimesActivity.class);
+    	// gets the route
+    	Spinner spinner = (Spinner) findViewById(R.id.routes_spinner);
+    	int routeIndex = spinner.getSelectedItemPosition();
+    	Route route = routes.get(routeIndex);
+
+    	// get outbound
+    	int outboundId = R.id.radioOutbound;
+    	RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup1);
+    	int radioButtonId = radioGroup.getCheckedRadioButtonId();
+    	boolean outbound = (radioButtonId == outboundId);
+
+
+    	// this is like adding the message to the viewbag of the new activity.
+    	// Key-value pair
+    	intent.putExtra(ROUTE_ID, route.getRouteId());
+    	intent.putExtra(OUTBOUND, outbound);
+
+    	Log.d("TimetableReader", "Route=" + route.getRouteId() + ", outbound=" + outbound);
+
+//    	Intent intent = new Intent(this, StopTimesActivity.class);
 
     	// start the new activity
     	startActivity(intent);
