@@ -29,42 +29,5 @@ public abstract class BaseFeedParser implements FeedParser {
 	public static final String STOP_LON = "stop_lon";
 	public static final String AGENCY_ID = "agency_id";
 	public static final String ROUTE_NAME = "route_long_name";
-
-	
-
-	public InputStream getFeedInputStream(String feedUrl) {
-		URL url = null;
-		
-		// parse the url .
-		try {
-			url = new URL(feedUrl);
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
-		
-		// get the input stream
-		AsyncTask<URL, Void, InputStream> task = new GetInputStream().execute(url);
-		try {
-			return task.get();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		} catch (ExecutionException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
-	class GetInputStream extends AsyncTask<URL, Void, InputStream> {
-
-		@Override
-		protected InputStream doInBackground(URL... feedUrls) {
-			try {
-				return feedUrls[0].openConnection().getInputStream();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-	}
-
 	
 }

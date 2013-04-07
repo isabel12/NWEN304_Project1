@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -37,8 +36,11 @@ public class DisplayTripsActivity extends ListActivity {
 
 		// load trips
 		dataLoader = new DataLoader(this);
+		
+		Log.write("loading trips");
 		trips = dataLoader.loadTrips();
-
+		Log.write("loaded trips");
+		
 		// work out what trip they want to display
 		Intent intent = getIntent();
 		this.routeId = intent.getIntExtra(RoutesActivity.ROUTE_ID, 0);

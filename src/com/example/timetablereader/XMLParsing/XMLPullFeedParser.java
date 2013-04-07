@@ -22,22 +22,7 @@ import android.util.Xml;
 
 public class XMLPullFeedParser extends BaseFeedParser {
 
-
-	public List<StopTime> parseStopTimes(String feedUrl) {	
-		
-		
-		try {
-			AsyncTask<InputStream, Void, List<StopTime>> parseTask = new ParseStopTimesTask().execute(getFeedInputStream(feedUrl));
-			return parseTask.get();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e);
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e);
-		}
-	}
-	
+	@Override
 	public List<StopTime> parseStopTimes(InputStream inputStream){
 		try {
 			AsyncTask<InputStream, Void, List<StopTime>> parseTask = new ParseStopTimesTask().execute(inputStream);
@@ -52,20 +37,6 @@ public class XMLPullFeedParser extends BaseFeedParser {
 	}
 	
 	@Override
-	public Map<Integer, Stop> parseStops(String feedUrl) {
-		
-		try {
-			AsyncTask<InputStream, Void, Map<Integer, Stop>> parseTask = new ParseStopsTask().execute(getFeedInputStream(feedUrl));
-			return parseTask.get();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e);
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e);
-		}
-	}
-	
 	public Map<Integer, Stop> parseStops(InputStream inputStream){
 		try {
 			AsyncTask<InputStream, Void, Map<Integer, Stop>> parseTask = new ParseStopsTask().execute(inputStream);
@@ -79,51 +50,35 @@ public class XMLPullFeedParser extends BaseFeedParser {
 		}
 	}
 	
-
-	@Override
-	public List<Trip> parseTrips(String feedUrl) {
-		
-		try {
-			AsyncTask<InputStream, Void, List<Trip>> parseTask = new ParseTripsTask().execute(getFeedInputStream(feedUrl));
-			return parseTask.get();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e);
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e);
-		}
-	}
-
-	@Override
-	public List<Route> parseRoutes(String feedUrl) {
-		
-		try {
-			AsyncTask<InputStream, Void, List<Route>> parseTask = new ParseRoutesTask().execute(getFeedInputStream(feedUrl));
-			return parseTask.get();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e);
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e);
-		}
-	}	
-	
 	@Override
 	public List<Trip> parseTrips(InputStream inputStream) {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			AsyncTask<InputStream, Void, List<Trip>> parseTask = new ParseTripsTask().execute(inputStream);
+			return parseTask.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public List<Route> parseRoutes(InputStream inputStream) {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			AsyncTask<InputStream, Void, List<Route>> parseTask = new ParseRoutesTask().execute(inputStream);
+			return parseTask.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
 	}
 	
-	
-	
+		
 	private class ParseStopTimesTask extends AsyncTask<InputStream, Void, List<StopTime>> {
 
 		@Override

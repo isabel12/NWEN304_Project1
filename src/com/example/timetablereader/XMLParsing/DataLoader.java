@@ -47,77 +47,138 @@ public class DataLoader {
 	}
 	
 	// return them sorted by TripId, and then by stop sequence.
-	public List<StopTime> loadStopTimes(){		
-		String FILENAME = "stopTimes.xml";	
-		List<StopTime> stopTimes = null;
-		
- 		try{
-	    	try{	
-	    		FileInputStream fis = activity.openFileInput(FILENAME);
-	    		Log.d("TimetableReader", "Reading stops from memory");
-	    		stopTimes = parser.parseStopTimes(fis);  
-	    		fis.close();
-	    		Log.d("TimetableReader", "Loaded stopTimes - " + stopTimes.size());
-	    		
-	    		return stopTimes;
-	    	} 
-	    	catch (FileNotFoundException e){
-	    		try {
-		    		Log.d("TimetableReader", "Reading stops from online");
-		    		
-		    		// load from online and sort
-		    	   	stopTimes = parser.parseStopTimes(STOP_TIMES_URL);
-		    	   	Collections.sort(stopTimes);
-		    	   	
-		        	Log.d("TimetableReader", "stop times read online - " + stopTimes.size());
-		        	for(StopTime s: stopTimes){
-		        		Log.d("TimetableReader", s.toString());
-		        	}  
-		        			
-		        	// convert to xml
-		        	String xml = writeStopTimesToXML(stopTimes); 				
-		       		FileOutputStream fos;
-				
-		       		// save to internal memory
-					fos = activity.openFileOutput(FILENAME, Context.MODE_PRIVATE);
-					fos.write(xml.getBytes());   		
-		       		fos.close();	
-		       		
-		       		return stopTimes;
-		       		
-				} catch (FileNotFoundException e1) {
-					throw new RuntimeException(e1);
-				}        		
-	    	}
- 		} catch(IOException e3){
-    		throw new RuntimeException(e3);
-    	}	
-    }
+	public List<StopTime> loadStopTimes()  {		
+		try{		
+			String FILENAME = "stopTimes.xml";	
+			List<StopTime> stopTimes = null;
+	
+			try{	
+				FileInputStream fis = activity.openFileInput(FILENAME);
+				Log.d("TimetableReader", "Reading stops from memory");
+				stopTimes = parser.parseStopTimes(fis);  
+				fis.close();
+				Log.d("TimetableReader", "Loaded stopTimes - " + stopTimes.size());
+	
+				return stopTimes;
+			} 
+			catch (FileNotFoundException e){
+	
+				Log.d("TimetableReader", "Reading stops from online");
+	
+				// load from online and sort
+				InputStream input = feedLoader.getFeedInputStream(STOP_TIMES_URL);
+				stopTimes = parser.parseStopTimes(input);
+				Collections.sort(stopTimes);
+	
+				Log.d("TimetableReader", "stop times read online - " + stopTimes.size());
+				for(StopTime s: stopTimes){
+					Log.d("TimetableReader", s.toString());
+				}  
+	
+				// convert to xml
+				String xml = writeStopTimesToXML(stopTimes); 				
+				FileOutputStream fos;
+	
+				// save to internal memory
+				fos = activity.openFileOutput(FILENAME, Context.MODE_PRIVATE);
+				fos.write(xml.getBytes());   		
+				fos.close();	
+	
+				return stopTimes;
+			}
+		} catch (IOException e){
+			throw new RuntimeException(e);
+		}
+
+	}
 	
 	public List<Trip> loadTrips(){
+		String FILENAME = "trips.xml";	
+		List<Trip> trips = null;
+		
+		try{
+			try{	
+				FileInputStream fis = activity.openFileInput(FILENAME);
+				Log.d("TimetableReader", "Reading trips from memory");
+				trips = parser.parseTrips(fis);  
+				fis.close();
+				Log.d("TimetableReader", "Loaded trips - " + trips.size());
 
-    	List<Trip> trips = parser.parseTrips(TRIPS_URL);
+				return trips;
+			} 
+			catch (FileNotFoundException e){
 
-    	//String xml = writeXml();
-	    Log.d("TimetableReader", "trips read - " + trips.size());
-	    for(Trip t: trips){
-	    	Log.d("TimetableReader", t.toString());
-	    }
-	    
-	    return trips;
+				Log.d("TimetableReader", "Reading trips from online");
+
+				// load from online 
+				InputStream input = feedLoader.getFeedInputStream(TRIPS_URL);
+				trips = parser.parseTrips(input);
+
+				// log
+				Log.d("TimetableReader", "Loaded trips - " + trips.size());
+				for(Trip t: trips){
+					Log.d("TimetableReader", t.toString());
+				}  
+
+				// convert to xml
+				String xml = writeTripsToXml(trips); 				
+				FileOutputStream fos;
+
+				// save to internal memory
+				fos = activity.openFileOutput(FILENAME, Context.MODE_PRIVATE);
+				fos.write(xml.getBytes());   		
+				fos.close();	
+
+				return trips;
+			}
+		} catch(IOException e){
+			throw new RuntimeException(e);
+		}	
 	}
 	
 	public List<Route> loadRoutes(){
 
-	   	List<Route> routes = parser.parseRoutes(ROUTES_URL);
-	   	
-	    	//String xml = writeXml();
-    	Log.d("TimetableReader", "routes read - " + routes.size());
-    	for(Route r: routes){   		
-    		Log.d("TimetableReader", r.toString());
-    	}
-    	
-    	return routes;	
+		String FILENAME = "routes.xml";	
+		List<Route> routes = null;
+		
+		try{
+			try{	
+				FileInputStream fis = activity.openFileInput(FILENAME);
+				Log.d("TimetableReader", "Reading routes from memory");
+				routes = parser.parseRoutes(fis);  
+				fis.close();
+				Log.d("TimetableReader", "Loaded routes- " + routes.size());
+
+				return routes;
+			} 
+			catch (FileNotFoundException e){
+
+				Log.d("TimetableReader", "Reading routes from online");
+
+				// load from online 
+				InputStream input = feedLoader.getFeedInputStream(ROUTES_URL);
+				routes = parser.parseRoutes(input);
+
+				// log
+				Log.d("TimetableReader", "Loaded routes - " + routes.size());
+				for(Route r: routes){
+					Log.d("TimetableReader", r.toString());
+				}  
+
+				// convert to xml
+				String xml = writeRoutesToXml(routes); 				
+				FileOutputStream fos;
+
+				// save to internal memory
+				fos = activity.openFileOutput(FILENAME, Context.MODE_PRIVATE);
+				fos.write(xml.getBytes());   		
+				fos.close();	
+
+				return routes;
+			}
+		} catch(IOException e){
+			throw new RuntimeException(e);
+		}	
 	}
 	
 	
@@ -166,7 +227,70 @@ public class DataLoader {
     	}	
 	}
 	
-
+	private String writeRoutesToXml(List<Route> routes){
+		XmlSerializer serializer = Xml.newSerializer();
+		StringWriter writer = new StringWriter();
+		try {
+			serializer.setOutput(writer);
+			serializer.startDocument("UTF-8", true);
+			serializer.startTag("", BaseFeedParser.DOCUMENT);		
+			for (Route r: routes){
+				serializer.startTag("", BaseFeedParser.RECORD);
+				
+				serializer.startTag("", BaseFeedParser.ROUTE_ID);
+				serializer.text("" + r.getRouteId());
+				serializer.endTag("", BaseFeedParser.ROUTE_ID);
+				
+				serializer.startTag("", BaseFeedParser.AGENCY_ID);
+				serializer.text(r.getAgency());
+				serializer.endTag("", BaseFeedParser.AGENCY_ID);
+				
+				serializer.startTag("", BaseFeedParser.ROUTE_NAME);
+				serializer.text("" + r.getName());
+				serializer.endTag("", BaseFeedParser.ROUTE_NAME);
+				
+				serializer.endTag("", BaseFeedParser.RECORD);
+			}
+			serializer.endTag("", BaseFeedParser.DOCUMENT);
+			serializer.endDocument();
+			return writer.toString();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private String writeTripsToXml(List<Trip> trips){
+		XmlSerializer serializer = Xml.newSerializer();
+		StringWriter writer = new StringWriter();
+		try {
+			serializer.setOutput(writer);
+			serializer.startDocument("UTF-8", true);
+			serializer.startTag("", BaseFeedParser.DOCUMENT);		
+			for (Trip t: trips){
+				serializer.startTag("", BaseFeedParser.RECORD);
+				
+				serializer.startTag("", BaseFeedParser.ROUTE_ID);
+				serializer.text("" + t.getRouteId());
+				serializer.endTag("", BaseFeedParser.ROUTE_ID);
+				
+				serializer.startTag("", BaseFeedParser.TRIP_ID);
+				serializer.text(t.getTripId() + "");
+				serializer.endTag("", BaseFeedParser.TRIP_ID);
+				
+				serializer.startTag("", BaseFeedParser.DIRECTION_ID);
+				serializer.text(t.isOutbound()? "0":"1");
+				serializer.endTag("", BaseFeedParser.DIRECTION_ID);
+				
+				serializer.endTag("", BaseFeedParser.RECORD);
+			}
+			serializer.endTag("", BaseFeedParser.DOCUMENT);
+			serializer.endDocument();
+			return writer.toString();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	private String writeStopsToXml(List<Stop> stops){
 		XmlSerializer serializer = Xml.newSerializer();
 		StringWriter writer = new StringWriter();
@@ -202,8 +326,6 @@ public class DataLoader {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	
 	
 	private String writeStopTimesToXML(List<StopTime> stopTimes){
 		XmlSerializer serializer = Xml.newSerializer();
@@ -243,7 +365,6 @@ public class DataLoader {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		
 	}
 	
 	
