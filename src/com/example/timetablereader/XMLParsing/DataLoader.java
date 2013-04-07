@@ -16,6 +16,7 @@ import org.xmlpull.v1.XmlSerializer;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
+import android.util.SparseArray;
 import android.util.Xml;
 
 import com.example.timetablereader.Objects.Route;
@@ -47,10 +48,10 @@ public class DataLoader {
 	}
 	
 	// return them sorted by TripId, and then by stop sequence.
-	public List<StopTime> loadStopTimes()  {		
+	public Map<Integer, List<StopTime>> loadStopTimes()  {		
 		try{		
 			String FILENAME = "stopTimes.xml";	
-			List<StopTime> stopTimes = null;
+			Map<Integer, List<StopTime>> stopTimes = null;
 	
 			try{	
 				FileInputStream fis = activity.openFileInput(FILENAME);
@@ -68,15 +69,16 @@ public class DataLoader {
 				// load from online and sort
 				InputStream input = feedLoader.getFeedInputStream(STOP_TIMES_URL);
 				stopTimes = parser.parseStopTimes(input);
-				Collections.sort(stopTimes);
 	
-				Log.d("TimetableReader", "stop times read online - " + stopTimes.size());
-				for(StopTime s: stopTimes){
-					Log.d("TimetableReader", s.toString());
-				}  
+				Log.d("TimetableReader", "stop times read online for this many trips - " + stopTimes.size());
+
 	
 				// convert to xml
-				String xml = writeStopTimesToXML(stopTimes); 				
+				List<StopTime> stopTimesList = new ArrayList<StopTime>();
+				for(List<StopTime> list: stopTimes.values()){
+					stopTimesList.addAll(list);
+				}					
+				String xml = writeStopTimesToXML(stopTimesList); 				
 				FileOutputStream fos;
 	
 				// save to internal memory

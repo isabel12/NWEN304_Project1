@@ -18,14 +18,15 @@ import com.example.timetablereader.Objects.Trip;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import android.util.SparseArray;
 import android.util.Xml;
 
 public class XMLPullFeedParser extends BaseFeedParser {
 
 	@Override
-	public List<StopTime> parseStopTimes(InputStream inputStream){
+	public Map<Integer, List<StopTime>> parseStopTimes(InputStream inputStream){
 		try {
-			AsyncTask<InputStream, Void, List<StopTime>> parseTask = new ParseStopTimesTask().execute(inputStream);
+			AsyncTask<InputStream, Void, Map<Integer, List<StopTime>>> parseTask = new ParseStopTimesTask().execute(inputStream);
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -79,13 +80,13 @@ public class XMLPullFeedParser extends BaseFeedParser {
 	}
 	
 		
-	private class ParseStopTimesTask extends AsyncTask<InputStream, Void, List<StopTime>> {
+	private class ParseStopTimesTask extends AsyncTask<InputStream, Void, Map<Integer, List<StopTime>>> {
 
 		@Override
-		protected List<StopTime> doInBackground(InputStream... inputStreams) {
-			// list of stop times
-			List<StopTime> stopTimes = null;
-
+		protected Map<Integer, List<StopTime>> doInBackground(InputStream... inputStreams) {
+			// list of stop times			
+			Map<Integer, List<StopTime>> stopTimeMap = null;
+			
 			XmlPullParser parser = Xml.newPullParser();
 			try {
 				// auto-detect the encoding from the stream
@@ -97,7 +98,7 @@ public class XMLPullFeedParser extends BaseFeedParser {
 					String name = null;
 					switch (eventType){
 						case XmlPullParser.START_DOCUMENT:
-							stopTimes = new ArrayList<StopTime>();
+							stopTimeMap = new HashMap<Integer, List<StopTime>>();
 							break;
 						case XmlPullParser.START_TAG:					
 							name = parser.getName();
@@ -120,7 +121,17 @@ public class XMLPullFeedParser extends BaseFeedParser {
 						case XmlPullParser.END_TAG:
 							name = parser.getName();
 							if (name.equalsIgnoreCase(RECORD) && currentStopTime != null){
-								stopTimes.add(currentStopTime);
+								// get the list associated with the trip id
+								int key = currentStopTime.getTripId();	
+								
+								List<StopTime> list = stopTimeMap.get(key);
+								if (list == null){
+									list = new ArrayList<StopTime>();
+									stopTimeMap.put(key, list);
+								}
+														
+								list.add(currentStopTime);
+
 							} else if (name.equalsIgnoreCase(DOCUMENT)){
 								done = true;
 							}
@@ -133,7 +144,7 @@ public class XMLPullFeedParser extends BaseFeedParser {
 			}
 			
 			// return the stop times
-			return stopTimes;			
+			return stopTimeMap;			
 		}
 	}
 	

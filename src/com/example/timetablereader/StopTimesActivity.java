@@ -22,7 +22,7 @@ public class StopTimesActivity extends Activity {
 	private DataLoader dataLoader;
 
 	// all the data
-	private List<StopTime> stopTimes;
+	private Map<Integer, List<StopTime>> stopTimes;
 	private Map<Integer, Stop> stops;
 	
 	// data relating to this trip
@@ -63,24 +63,22 @@ public class StopTimesActivity extends Activity {
 
 
 	private void findStopTimes(){
-		// build list to display
+		// build list to display 
         stopsList = new ArrayList<Map<String, Object>>();
         Map<String, Object> map = null;
         
         Log.write("total number of stops is " + stopTimes.size());
-        for(StopTime s: this.stopTimes){
-        	Log.write("Looking at stop: " + s);
-        	Log.write("Looking for: " + tripId);
-        	if (s.getTripId() == tripId){
-        		Log.write("found a stop: " + s);
-        		map = new HashMap<String, Object>();
-        		String stopName = stops.get(s.getStopId()).getStopName();
-        		map.put("stop_name", stopName);
-        		map.put("departure_time", s.getDepartureTime());
-        		stopsList.add(map);
-        	}
-        }
         
+        List<StopTime> applicableStopTimes = stopTimes.get(tripId);
+        Collections.sort(applicableStopTimes);
+        for(StopTime s: applicableStopTimes){
+        	map = new HashMap<String, Object>();
+        	String stopName = stops.get(s.getStopId()).getStopName();
+
+        	map.put("stop_name", stopName);
+        	map.put("departure_time", s.getDepartureTime());
+        	stopsList.add(map);
+        }
         
         Log.write("Number of stops found is " + stopsList.size());
 	}
