@@ -4,8 +4,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -29,31 +31,67 @@ import com.example.timetablereader.Objects.Trip;
  */
 public class DataLoader {
 
-	public static final String STOP_TIMES_URL = "http://homepages.ecs.vuw.ac.nz/~ian/nwen304/stop_times.xml";
-	public static final String STOPS_URL = "http://homepages.ecs.vuw.ac.nz/~ian/nwen304/stops.xml";
-	public static final String ROUTES_URL = "http://homepages.ecs.vuw.ac.nz/~ian/nwen304/routes.xml";
-	public static final String TRIPS_URL = "http://homepages.ecs.vuw.ac.nz/~ian/nwen304/trips.xml";	
-	public static final String STOP_TIMES_URL_SHORT = "http://homepages.ecs.vuw.ac.nz/~ian/nwen304/simpletimetable/stop_times.xml";
+	public static final String STOP_TIMES_URL = "http://homepages.ecs.vuw.ac.nz/~broomeisab/stop_times.xml";
+	public static final String STOPS_URL = "http://homepages.ecs.vuw.ac.nz/~broomeisab/stops.xml";
+	public static final String ROUTES_URL = "http://homepages.ecs.vuw.ac.nz/~broomeisab/routes.xml";
+	public static final String TRIPS_URL = "http://homepages.ecs.vuw.ac.nz/~broomeisab/trips.xml";	
 	
+	private FeedLoader feedLoader;
 	private FeedParser parser;
 	private Activity activity;
 	
 	public DataLoader(Activity activity){
 		this.activity = activity;
 		this.parser = new XMLPullFeedParser();
+		this.feedLoader = new FeedLoader();
 	}
 	
-	public List<StopTime> loadStopTimes(){
-    	
-	   	List<StopTime> stopTimes = parser.parseStopTimes(STOP_TIMES_URL_SHORT);
-
-    	//String xml = writeXml();
-    	Log.d("TimetableReader", "stop times read - " + stopTimes.size());
-    	for(StopTime s: stopTimes){
-    		Log.d("TimetableReader", s.toString());
-    	}
-    	
-    	return stopTimes;
+	// return them sorted by TripId, and then by stop sequence.
+	public List<StopTime> loadStopTimes(){		
+		String FILENAME = "stopTimes.xml";	
+		List<StopTime> stopTimes = null;
+		
+ 		try{
+	    	try{	
+	    		FileInputStream fis = activity.openFileInput(FILENAME);
+	    		Log.d("TimetableReader", "Reading stops from memory");
+	    		stopTimes = parser.parseStopTimes(fis);  
+	    		fis.close();
+	    		Log.d("TimetableReader", "Loaded stopTimes - " + stopTimes.size());
+	    		
+	    		return stopTimes;
+	    	} 
+	    	catch (FileNotFoundException e){
+	    		try {
+		    		Log.d("TimetableReader", "Reading stops from online");
+		    		
+		    		// load from online and sort
+		    	   	stopTimes = parser.parseStopTimes(STOP_TIMES_URL);
+		    	   	Collections.sort(stopTimes);
+		    	   	
+		        	Log.d("TimetableReader", "stop times read online - " + stopTimes.size());
+		        	for(StopTime s: stopTimes){
+		        		Log.d("TimetableReader", s.toString());
+		        	}  
+		        			
+		        	// convert to xml
+		        	String xml = writeStopTimesToXML(stopTimes); 				
+		       		FileOutputStream fos;
+				
+		       		// save to internal memory
+					fos = activity.openFileOutput(FILENAME, Context.MODE_PRIVATE);
+					fos.write(xml.getBytes());   		
+		       		fos.close();	
+		       		
+		       		return stopTimes;
+		       		
+				} catch (FileNotFoundException e1) {
+					throw new RuntimeException(e1);
+				}        		
+	    	}
+ 		} catch(IOException e3){
+    		throw new RuntimeException(e3);
+    	}	
     }
 	
 	public List<Trip> loadTrips(){
@@ -72,6 +110,7 @@ public class DataLoader {
 	public List<Route> loadRoutes(){
 
 	   	List<Route> routes = parser.parseRoutes(ROUTES_URL);
+	   	
 	    	//String xml = writeXml();
     	Log.d("TimetableReader", "routes read - " + routes.size());
     	for(Route r: routes){   		
@@ -81,16 +120,18 @@ public class DataLoader {
     	return routes;	
 	}
 	
+	
 	public Map<Integer, Stop> loadStops(){
 		String FILENAME = "stops.xml";	
 		Map<Integer, Stop> stops = null;
+		InputStream inputStream = null;
 
  		try{
 	    	try{	
-	    		FileInputStream fis = activity.openFileInput(FILENAME);
+	    		inputStream = activity.openFileInput(FILENAME);
 	    		Log.d("TimetableReader", "Reading stops from memory");
-	    		stops = parser.parseStops(fis);  
-	    		fis.close();
+	    		stops = parser.parseStops(inputStream);  
+	    		inputStream.close();
 	    		Log.d("TimetableReader", "Loaded stops - " + stops.size());
 	    		
 	    		return stops;
@@ -100,8 +141,9 @@ public class DataLoader {
 		    		Log.d("TimetableReader", "Reading stops from online");
 		    		
 		       		// load stops online
-		        	stops = parser.parseStops(STOPS_URL);
-		
+		    		inputStream = feedLoader.getFeedInputStream(STOPS_URL);
+		        	stops = parser.parseStops(inputStream);
+		        			
 		        	// convert to xml
 		        	List<Stop> stopList = new ArrayList<Stop>();
 		        	stopList.addAll(stops.values());
@@ -159,6 +201,49 @@ public class DataLoader {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	
+	
+	private String writeStopTimesToXML(List<StopTime> stopTimes){
+		XmlSerializer serializer = Xml.newSerializer();
+		StringWriter writer = new StringWriter();
+		try {
+			serializer.setOutput(writer);
+			serializer.startDocument("UTF-8", true);
+			serializer.startTag("", BaseFeedParser.DOCUMENT);		
+			for (StopTime st: stopTimes){
+				serializer.startTag("", BaseFeedParser.RECORD);
+				
+				serializer.startTag("", BaseFeedParser.TRIP_ID);
+				serializer.text("" + st.getTripId());
+				serializer.endTag("", BaseFeedParser.TRIP_ID);
+				
+				serializer.startTag("", BaseFeedParser.ARRIVAL_TIME);
+				serializer.text("" + st.getArrivalTime());
+				serializer.endTag("", BaseFeedParser.ARRIVAL_TIME);
+				
+				serializer.startTag("", BaseFeedParser.DEPARTURE_TIME);
+				serializer.text("" + st.getDepartureTime());
+				serializer.endTag("", BaseFeedParser.DEPARTURE_TIME);
+				
+				serializer.startTag("", BaseFeedParser.STOP_ID);
+				serializer.text("" + st.getStopId());
+				serializer.endTag("", BaseFeedParser.STOP_ID);
+				
+				serializer.startTag("", BaseFeedParser.STOP_SEQUENCE);
+				serializer.text("" + st.getStopSequence());
+				serializer.endTag("", BaseFeedParser.STOP_SEQUENCE);
+				
+				serializer.endTag("", BaseFeedParser.RECORD);
+			}
+			serializer.endTag("", BaseFeedParser.DOCUMENT);
+			serializer.endDocument();
+			return writer.toString();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
 	}
 	
 	

@@ -24,10 +24,10 @@ public class XMLPullFeedParser extends BaseFeedParser {
 
 
 	public List<StopTime> parseStopTimes(String feedUrl) {	
-		super.SetUrl(feedUrl);
+		
 		
 		try {
-			AsyncTask<InputStream, Void, List<StopTime>> parseTask = new ParseStopTimesTask().execute(getInputStream());
+			AsyncTask<InputStream, Void, List<StopTime>> parseTask = new ParseStopTimesTask().execute(getFeedInputStream(feedUrl));
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -53,10 +53,9 @@ public class XMLPullFeedParser extends BaseFeedParser {
 	
 	@Override
 	public Map<Integer, Stop> parseStops(String feedUrl) {
-		super.SetUrl(feedUrl);
 		
 		try {
-			AsyncTask<InputStream, Void, Map<Integer, Stop>> parseTask = new ParseStopsTask().execute(getInputStream());
+			AsyncTask<InputStream, Void, Map<Integer, Stop>> parseTask = new ParseStopsTask().execute(getFeedInputStream(feedUrl));
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -83,10 +82,9 @@ public class XMLPullFeedParser extends BaseFeedParser {
 
 	@Override
 	public List<Trip> parseTrips(String feedUrl) {
-		super.SetUrl(feedUrl);
 		
 		try {
-			AsyncTask<InputStream, Void, List<Trip>> parseTask = new ParseTripsTask().execute(getInputStream());
+			AsyncTask<InputStream, Void, List<Trip>> parseTask = new ParseTripsTask().execute(getFeedInputStream(feedUrl));
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -99,10 +97,9 @@ public class XMLPullFeedParser extends BaseFeedParser {
 
 	@Override
 	public List<Route> parseRoutes(String feedUrl) {
-		super.SetUrl(feedUrl);
 		
 		try {
-			AsyncTask<InputStream, Void, List<Route>> parseTask = new ParseRoutesTask().execute(getInputStream());
+			AsyncTask<InputStream, Void, List<Route>> parseTask = new ParseRoutesTask().execute(getFeedInputStream(feedUrl));
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -112,6 +109,19 @@ public class XMLPullFeedParser extends BaseFeedParser {
 			throw new RuntimeException(e);
 		}
 	}	
+	
+	@Override
+	public List<Trip> parseTrips(InputStream inputStream) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Route> parseRoutes(InputStream inputStream) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	
 	
 	private class ParseStopTimesTask extends AsyncTask<InputStream, Void, List<StopTime>> {
@@ -139,17 +149,8 @@ public class XMLPullFeedParser extends BaseFeedParser {
 							if (name.equalsIgnoreCase(RECORD)){
 								currentStopTime = new StopTime();
 							} else if (currentStopTime != null){
-								if (name.equalsIgnoreCase(ROUTE_ID)){
-									
-									currentStopTime.setRouteId(Integer.parseInt(parser.nextText()));
-								} else if (name.equalsIgnoreCase(TRIP_ID)){
+								if (name.equalsIgnoreCase(TRIP_ID)){
 									currentStopTime.setTripId(Integer.parseInt(parser.nextText()));
-								} else if (name.equalsIgnoreCase(DIRECTION_ID)){
-									String dirId = parser.nextText().trim();
-									if (dirId.equals("0")){
-										currentStopTime.setOutbound(true);
-									}else
-										currentStopTime.setOutbound(false);
 								} else if (name.equalsIgnoreCase(ARRIVAL_TIME)){
 									currentStopTime.setArrivalTime(parser.nextText());
 								} else if (name.equalsIgnoreCase(DEPARTURE_TIME)){
@@ -159,7 +160,7 @@ public class XMLPullFeedParser extends BaseFeedParser {
 								}else if (name.equalsIgnoreCase(STOP_SEQUENCE)){
 									currentStopTime.setStopSequence(Integer.parseInt(parser.nextText()));
 								}
-							}
+							}						
 							break;
 						case XmlPullParser.END_TAG:
 							name = parser.getName();
@@ -353,5 +354,8 @@ public class XMLPullFeedParser extends BaseFeedParser {
 			return routes;			
 		}
 	}
+
+
+
 	
 }

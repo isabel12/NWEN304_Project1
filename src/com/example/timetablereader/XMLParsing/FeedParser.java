@@ -12,12 +12,15 @@ import com.example.timetablereader.Objects.Trip;
 public interface FeedParser {
 
 	List<StopTime> parseStopTimes(String feedUrl);
+	List<StopTime> parseStopTimes(InputStream inputStream);
 	
 	Map<Integer, Stop> parseStops(String feedUrl);
 	Map<Integer, Stop> parseStops(InputStream inputStream);
 	
 	List<Trip> parseTrips(String feedUrl);
+	List<Trip> parseTrips(InputStream inputStream);
 	
 	List<Route> parseRoutes(String feedUrl);
+	List<Route> parseRoutes(InputStream inputStream);
 
 }

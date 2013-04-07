@@ -7,20 +7,27 @@ import java.util.List;
 import com.example.timetablereader.Objects.Trip;
 import com.example.timetablereader.XMLParsing.DataLoader;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.app.ListActivity;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
-public class DisplayTripsActivity extends Activity {
+public class DisplayTripsActivity extends ListActivity {
 
 
 	private List<Trip> trips;
 	private DataLoader dataLoader;
+	
+	private int routeId;
+	private boolean outbound;
+	private List<String> releventTrips;
 
 
 	@Override
@@ -34,11 +41,12 @@ public class DisplayTripsActivity extends Activity {
 
 		// work out what trip they want to display
 		Intent intent = getIntent();
-		int routeId = intent.getIntExtra(RoutesActivity.ROUTE_ID, 0);
-		boolean outbound = intent.getBooleanExtra(RoutesActivity.OUTBOUND, false);
+		this.routeId = intent.getIntExtra(RoutesActivity.ROUTE_ID, 0);
+		this.outbound = intent.getBooleanExtra(RoutesActivity.OUTBOUND, false);
 
 		// display the trips
-		displayTrips(routeId, outbound);
+		findTrips();
+		displayTrips();
 
 	}
 
@@ -49,27 +57,48 @@ public class DisplayTripsActivity extends Activity {
 		return true;
 	}
 
-
-	public void displayStops(View view){
-		Log.d("TimetableReader", "displaying stops");
-	}
-
-	private void displayTrips(int routeId, boolean outbound){
-
+	
+	private void findTrips(){	
 		// find relevent trips
-		List<String> releventTrips = new ArrayList<String>();
+		releventTrips = new ArrayList<String>();
     	for (Trip trip : trips){
     		if (trip.isOutbound() == outbound && trip.getRouteId() == routeId){
     			releventTrips.add(trip.getTripId() + "");
     		}
     	}
     	Collections.sort(releventTrips);
+	}
 
+
+	private void displayTrips(){
+		// display the title
+		TextView title = (TextView)findViewById(R.id.trips_title);		
+		String titleText = String.format("%s trips for route %d", outbound ? "Outbound": "Inbound", routeId);
+		title.setText(titleText);
+		
+		
     	// display them
     	ArrayAdapter<String> adapter =
     		new ArrayAdapter<String>(this, R.layout.trip_row,releventTrips);
-    	ListView myList=(ListView)findViewById(R.id.trips_list);
+    	ListView myList = getListView();
         myList.setAdapter(adapter);
 	}
 
+	
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		super.onListItemClick(l, v, position, id);
+		
+		// get the trip that was selected
+		int tripId = Integer.parseInt((String)getListView().getItemAtPosition(position));
+		
+		// set up the intent
+		Intent intent = new Intent(this, StopTimesActivity.class);
+		intent.putExtra(RoutesActivity.ROUTE_ID, routeId);
+		intent.putExtra(RoutesActivity.TRIP_ID, tripId);
+    	intent.putExtra(RoutesActivity.OUTBOUND, outbound);
+			
+		this.startActivity(intent);
+	}
+	
 }

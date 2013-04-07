@@ -30,19 +30,20 @@ public abstract class BaseFeedParser implements FeedParser {
 	public static final String AGENCY_ID = "agency_id";
 	public static final String ROUTE_NAME = "route_long_name";
 
-	private URL feedUrl;
 	
-	
-	protected void SetUrl(String feedUrl){
+
+	public InputStream getFeedInputStream(String feedUrl) {
+		URL url = null;
+		
+		// parse the url .
 		try {
-			this.feedUrl = new URL(feedUrl);
+			url = new URL(feedUrl);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	protected InputStream getInputStream() {
-		AsyncTask<URL, Void, InputStream> task = new GetInputStream().execute(feedUrl);
+		
+		// get the input stream
+		AsyncTask<URL, Void, InputStream> task = new GetInputStream().execute(url);
 		try {
 			return task.get();
 		} catch (InterruptedException e) {
