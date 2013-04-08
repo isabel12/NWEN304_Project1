@@ -11,14 +11,18 @@ import com.example.timetablereader.Objects.Stop;
 import com.example.timetablereader.Objects.StopTime;
 import com.example.timetablereader.Objects.Trip;
 
-public interface FeedParser {
+public interface IFeedParser {
 
 	Map<Integer, List<StopTime>> parseStopTimes(InputStream inputStream);
-	
+
 	Map<Integer, Stop> parseStops(InputStream inputStream);
 
 	List<Trip> parseTrips(InputStream inputStream);
-	
+
 	List<Route> parseRoutes(InputStream inputStream);
+
+	Map<String, Integer> parseFileVersionNumbers(InputStream inputStream);
+	
+	
 
 }

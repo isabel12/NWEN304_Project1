@@ -12,7 +12,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.StrictMode;
 
-public abstract class BaseFeedParser implements FeedParser {
+public abstract class BaseFeedParser implements IFeedParser {
 	// names of the XML tags
 	public static final String DOCUMENT = "document";
 	public static final String RECORD = "record";
@@ -29,5 +29,13 @@ public abstract class BaseFeedParser implements FeedParser {
 	public static final String STOP_LON = "stop_lon";
 	public static final String AGENCY_ID = "agency_id";
 	public static final String ROUTE_NAME = "route_long_name";
-	
+
+	public static final String FILENAME = "filename";
+	public static final String CURRENT_VERSION = "current_version";
+	public static final String VERSION = "version";
+
+	public static final String EDIT = "edit";
+	public static final String DELETE = "delete";
+	public static final String ADD = "add";
+
 }

@@ -9,7 +9,7 @@ import com.example.timetablereader.Objects.Stop;
 import com.example.timetablereader.Objects.StopTime;
 import com.example.timetablereader.Objects.Trip;
 import com.example.timetablereader.XMLParsing.DataLoader;
-import com.example.timetablereader.XMLParsing.FeedParser;
+import com.example.timetablereader.XMLParsing.IFeedParser;
 
 import android.os.Bundle;
 import android.app.Activity;

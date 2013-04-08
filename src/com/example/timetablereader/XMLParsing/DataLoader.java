@@ -38,7 +38,7 @@ public class DataLoader {
 	public static final String TRIPS_URL = "http://homepages.ecs.vuw.ac.nz/~broomeisab/trips.xml";	
 	
 	private FeedLoader feedLoader;
-	private FeedParser parser;
+	private IFeedParser parser;
 	private Activity activity;
 	
 	public DataLoader(Activity activity){
