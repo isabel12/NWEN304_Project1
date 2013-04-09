@@ -24,6 +24,7 @@ import com.example.timetablereader.Objects.Stop;
 import com.example.timetablereader.Objects.StopTime;
 import com.example.timetablereader.Objects.Trip;
 import com.example.timetablereader.Objects.ObjectUpdates.RouteUpdate;
+import com.example.timetablereader.Objects.ObjectUpdates.VersionedCollection;
 
 
 /**
@@ -52,17 +53,17 @@ public class DataLoader {
 	}
 
 	// return them sorted by TripId, and then by stop sequence.
-	public Map<Integer, List<StopTime>> loadStopTimes()  {
+	public VersionedCollection<Map<Integer, List<StopTime>>> loadStopTimes()  {
 		try{
 			String FILENAME = "stopTimes.xml";
-			Map<Integer, List<StopTime>> stopTimes = null;
+			VersionedCollection<Map<Integer, List<StopTime>>> stopTimes = null;
 
 			try{
 				FileInputStream fis = activity.openFileInput(FILENAME);
 				Log.d("TimetableReader", "Reading stops from memory");
 				stopTimes = parser.parseStopTimes(fis);
 				fis.close();
-				Log.d("TimetableReader", "Loaded stopTimes - " + stopTimes.size());
+				Log.d("TimetableReader", "Loaded stopTimes - " + stopTimes.getCollection().size());
 
 				return stopTimes;
 			}
@@ -74,15 +75,15 @@ public class DataLoader {
 				InputStream input = feedLoader.getFeedInputStream(STOP_TIMES_URL);
 				stopTimes = parser.parseStopTimes(input);
 
-				Log.d("TimetableReader", "stop times read online for this many trips - " + stopTimes.size());
+				Log.d("TimetableReader", "stop times read online for this many trips - " + stopTimes.getCollection().size());
 
 
 				// convert to xml
 				List<StopTime> stopTimesList = new ArrayList<StopTime>();
-				for(List<StopTime> list: stopTimes.values()){
+				for(List<StopTime> list: stopTimes.getCollection().values()){
 					stopTimesList.addAll(list);
 				}
-				String xml = writeStopTimesToXML(stopTimesList);
+				String xml = writeStopTimesToXML(stopTimesList, stopTimes.getVersion());
 				FileOutputStream fos;
 
 				// save to internal memory
@@ -98,9 +99,9 @@ public class DataLoader {
 
 	}
 
-	public List<Trip> loadTrips(){
+	public VersionedCollection<List<Trip>> loadTrips(){
 		String FILENAME = "trips.xml";
-		List<Trip> trips = null;
+		VersionedCollection<List<Trip>> trips = null;
 
 		try{
 			try{
@@ -108,7 +109,7 @@ public class DataLoader {
 				Log.d("TimetableReader", "Reading trips from memory");
 				trips = parser.parseTrips(fis);
 				fis.close();
-				Log.d("TimetableReader", "Loaded trips - " + trips.size());
+				Log.d("TimetableReader", "Loaded trips - " + trips.getCollection().size());
 
 				return trips;
 			}
@@ -121,13 +122,13 @@ public class DataLoader {
 				trips = parser.parseTrips(input);
 
 				// log
-				Log.d("TimetableReader", "Loaded trips - " + trips.size());
-				for(Trip t: trips){
+				Log.d("TimetableReader", "Loaded trips - " + trips.getCollection().size());
+				for(Trip t: trips.getCollection()){
 					Log.d("TimetableReader", t.toString());
 				}
 
 				// convert to xml
-				String xml = writeTripsToXml(trips);
+				String xml = writeTripsToXml(trips.getCollection(), trips.getVersion());
 				FileOutputStream fos;
 
 				// save to internal memory
@@ -142,10 +143,10 @@ public class DataLoader {
 		}
 	}
 
-	public List<Route> loadRoutes(){
+	public VersionedCollection<List<Route>> loadRoutes(){
 
 		String FILENAME = "routes.xml";
-		List<Route> routes = null;
+		VersionedCollection<List<Route>> routes = null;
 
 		try{
 			try{
@@ -153,7 +154,7 @@ public class DataLoader {
 				Log.d("TimetableReader", "Reading routes from memory");
 				routes = parser.parseRoutes(fis);
 				fis.close();
-				Log.d("TimetableReader", "Loaded routes- " + routes.size());
+				Log.d("TimetableReader", "Loaded routes- " + routes.getCollection().size());
 
 				return routes;
 			}
@@ -166,13 +167,13 @@ public class DataLoader {
 				routes = parser.parseRoutes(input);
 
 				// log
-				Log.d("TimetableReader", "Loaded routes - " + routes.size());
-				for(Route r: routes){
+				Log.d("TimetableReader", "Loaded routes - " + routes.getCollection().size());
+				for(Route r: routes.getCollection()){
 					Log.d("TimetableReader", r.toString());
 				}
 
 				// convert to xml
-				String xml = writeRoutesToXml(routes);
+				String xml = writeRoutesToXml(routes.getCollection(), routes.getVersion());
 				FileOutputStream fos;
 
 				// save to internal memory
@@ -188,9 +189,9 @@ public class DataLoader {
 	}
 
 
-	public Map<Integer, Stop> loadStops(){
+	public VersionedCollection<Map<Integer, Stop>> loadStops(){
 		String FILENAME = "stops.xml";
-		Map<Integer, Stop> stops = null;
+		VersionedCollection<Map<Integer, Stop>> stops = null;
 		InputStream inputStream = null;
 
  		try{
@@ -199,7 +200,7 @@ public class DataLoader {
 	    		Log.d("TimetableReader", "Reading stops from memory");
 	    		stops = parser.parseStops(inputStream);
 	    		inputStream.close();
-	    		Log.d("TimetableReader", "Loaded stops - " + stops.size());
+	    		Log.d("TimetableReader", "Loaded stops - " + stops.getCollection().size());
 
 	    		return stops;
 	    	}
@@ -213,8 +214,8 @@ public class DataLoader {
 
 		        	// convert to xml
 		        	List<Stop> stopList = new ArrayList<Stop>();
-		        	stopList.addAll(stops.values());
-		        	String xml = writeStopsToXml(stopList);
+		        	stopList.addAll(stops.getCollection().values());
+		        	String xml = writeStopsToXml(stopList, stops.getVersion());
 		       		FileOutputStream fos;
 
 		       		// save to internal memory
@@ -260,13 +261,19 @@ public class DataLoader {
 
 	}
 
-	private String writeRoutesToXml(List<Route> routes){
+	public String writeRoutesToXml(List<Route> routes, int version){
 		XmlSerializer serializer = Xml.newSerializer();
 		StringWriter writer = new StringWriter();
 		try {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
 			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
+			
+			// put version number in
+			serializer.startTag("", XMLPullFeedParser.VERSION);
+			serializer.text(version + "");
+			serializer.endTag("", XMLPullFeedParser.VERSION);
+			
 			for (Route r: routes){
 				serializer.startTag("", XMLPullFeedParser.RECORD);
 
@@ -292,13 +299,19 @@ public class DataLoader {
 		}
 	}
 
-	private String writeTripsToXml(List<Trip> trips){
+	public String writeTripsToXml(List<Trip> trips, int version){
 		XmlSerializer serializer = Xml.newSerializer();
 		StringWriter writer = new StringWriter();
 		try {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
 			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
+			
+			// put version number in
+			serializer.startTag("", XMLPullFeedParser.VERSION);
+			serializer.text(version + "");
+			serializer.endTag("", XMLPullFeedParser.VERSION);
+			
 			for (Trip t: trips){
 				serializer.startTag("", XMLPullFeedParser.RECORD);
 
@@ -324,13 +337,19 @@ public class DataLoader {
 		}
 	}
 
-	private String writeStopsToXml(List<Stop> stops){
+	public String writeStopsToXml(List<Stop> stops, int version){
 		XmlSerializer serializer = Xml.newSerializer();
 		StringWriter writer = new StringWriter();
 		try {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
 			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
+			
+			// put version number in
+			serializer.startTag("", XMLPullFeedParser.VERSION);
+			serializer.text(version + "");
+			serializer.endTag("", XMLPullFeedParser.VERSION);
+			
 			for (Stop st: stops){
 				serializer.startTag("", XMLPullFeedParser.RECORD);
 
@@ -360,13 +379,19 @@ public class DataLoader {
 		}
 	}
 
-	private String writeStopTimesToXML(List<StopTime> stopTimes){
+	public String writeStopTimesToXML(List<StopTime> stopTimes, int version){
 		XmlSerializer serializer = Xml.newSerializer();
 		StringWriter writer = new StringWriter();
 		try {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
 			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
+			
+			// put version number in
+			serializer.startTag("", XMLPullFeedParser.VERSION);
+			serializer.text(version + "");
+			serializer.endTag("", XMLPullFeedParser.VERSION);
+			
 			for (StopTime st: stopTimes){
 				serializer.startTag("", XMLPullFeedParser.RECORD);
 

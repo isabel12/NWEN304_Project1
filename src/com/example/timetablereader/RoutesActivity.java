@@ -11,6 +11,8 @@ import com.example.timetablereader.Objects.Trip;
 import com.example.timetablereader.XMLParsing.DataLoader;
 import com.example.timetablereader.XMLParsing.IFeedParser;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
@@ -37,11 +39,16 @@ public class RoutesActivity extends Activity {
 		setContentView(R.layout.activity_routes);
 
 		// load data
-		DataHolder.initialise(this);
+		DataHolder.initialise(this, isConnectedToInternet());
 		this.routes = DataHolder.getRoutes();
 
 		// load view
 		addItemsToRoutesSpinner();
+		
+		
+		ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+		NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+		boolean connectedToInternet = activeNetworkInfo != null && activeNetworkInfo.isConnected();
 	}
 
 	@Override
@@ -91,6 +98,12 @@ public class RoutesActivity extends Activity {
 			android.R.layout.simple_spinner_item, list);
 		dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		spinner.setAdapter(dataAdapter);
+	}
+	
+	private boolean isConnectedToInternet(){
+		ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+		NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+		return activeNetworkInfo != null && activeNetworkInfo.isConnected();
 	}
 
 }

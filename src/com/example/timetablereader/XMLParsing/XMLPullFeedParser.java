@@ -18,6 +18,7 @@ import com.example.timetablereader.Objects.Trip;
 import com.example.timetablereader.Objects.ObjectUpdates.RouteUpdate;
 import com.example.timetablereader.Objects.ObjectUpdates.Update;
 import com.example.timetablereader.Objects.ObjectUpdates.UpdateType;
+import com.example.timetablereader.Objects.ObjectUpdates.VersionedCollection;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -56,9 +57,9 @@ public class XMLPullFeedParser implements IFeedParser {
 
 
 	@Override
-	public Map<Integer, List<StopTime>> parseStopTimes(InputStream inputStream){
+	public VersionedCollection<Map<Integer, List<StopTime>>> parseStopTimes(InputStream inputStream){
 		try {
-			AsyncTask<InputStream, Void, Map<Integer, List<StopTime>>> parseTask = new ParseStopTimesTask().execute(inputStream);
+			AsyncTask<InputStream, Void, VersionedCollection<Map<Integer, List<StopTime>>>> parseTask = new ParseStopTimesTask().execute(inputStream);
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -70,9 +71,9 @@ public class XMLPullFeedParser implements IFeedParser {
 	}
 
 	@Override
-	public Map<Integer, Stop> parseStops(InputStream inputStream){
+	public VersionedCollection<Map<Integer, Stop>> parseStops(InputStream inputStream){
 		try {
-			AsyncTask<InputStream, Void, Map<Integer, Stop>> parseTask = new ParseStopsTask().execute(inputStream);
+			AsyncTask<InputStream, Void, VersionedCollection<Map<Integer, Stop>>> parseTask = new ParseStopsTask().execute(inputStream);
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -84,9 +85,9 @@ public class XMLPullFeedParser implements IFeedParser {
 	}
 
 	@Override
-	public List<Trip> parseTrips(InputStream inputStream) {
+	public VersionedCollection<List<Trip>> parseTrips(InputStream inputStream) {
 		try {
-			AsyncTask<InputStream, Void, List<Trip>> parseTask = new ParseTripsTask().execute(inputStream);
+			AsyncTask<InputStream, Void, VersionedCollection<List<Trip>>> parseTask = new ParseTripsTask().execute(inputStream);
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -98,9 +99,9 @@ public class XMLPullFeedParser implements IFeedParser {
 	}
 
 	@Override
-	public List<Route> parseRoutes(InputStream inputStream) {
+	public VersionedCollection<List<Route>> parseRoutes(InputStream inputStream) {
 		try {
-			AsyncTask<InputStream, Void, List<Route>> parseTask = new ParseRoutesTask().execute(inputStream);
+			AsyncTask<InputStream, Void, VersionedCollection<List<Route>>> parseTask = new ParseRoutesTask().execute(inputStream);
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -137,8 +138,6 @@ public class XMLPullFeedParser implements IFeedParser {
 			throw new RuntimeException(e);
 		}
 	}
-
-
 
 	/**
 	 * Parses route updates.
@@ -256,7 +255,7 @@ public class XMLPullFeedParser implements IFeedParser {
 
 
 	/**
-	 * This returns the current version numbers of all files.
+	 * This returns the current version numbers of all online files.
 	 * @author broomeisab
 	 *
 	 */
@@ -275,20 +274,23 @@ public class XMLPullFeedParser implements IFeedParser {
 				int eventType = parser.getEventType();
 
 				boolean done = false;
-
 				boolean record = false;
+				// fields to save
+				String filename = null;
+				int version = 1;
+				
 				while (eventType != XmlPullParser.END_DOCUMENT && !done){
-					// fields to save
-					String filename = null;
-					int version = 0;
+
 
 					switch (eventType){
 					case XmlPullParser.START_DOCUMENT:
-						versionNumbers = new HashMap<String, Integer>();
+						versionNumbers = new HashMap<String, Integer>();				
 						break;
 					case XmlPullParser.START_TAG:
 						String name = parser.getName();
 						if (name.equalsIgnoreCase(RECORD)){
+							filename = null;
+							version = 1;
 							record = true;
 						} else if (record){
 							if (name.equalsIgnoreCase(FILENAME)){
@@ -303,6 +305,7 @@ public class XMLPullFeedParser implements IFeedParser {
 						if (name.equalsIgnoreCase(RECORD) && record){
 
 							versionNumbers.put(filename, version);
+							Log.d("", "put in " + filename + version);
 							record = false;
 
 						} else if (name.equalsIgnoreCase(DOCUMENT)){
@@ -323,12 +326,13 @@ public class XMLPullFeedParser implements IFeedParser {
 
 
 
-	private class ParseStopTimesTask extends AsyncTask<InputStream, Void, Map<Integer, List<StopTime>>> {
+	private class ParseStopTimesTask extends AsyncTask<InputStream, Void, VersionedCollection<Map<Integer, List<StopTime>>>> {
 
 		@Override
-		protected Map<Integer, List<StopTime>> doInBackground(InputStream... inputStreams) {
+		protected VersionedCollection<Map<Integer, List<StopTime>>> doInBackground(InputStream... inputStreams) {
 			// list of stop times
 			Map<Integer, List<StopTime>> stopTimeMap = null;
+			int version = 1; // default is 1
 
 			XmlPullParser parser = Xml.newPullParser();
 			try {
@@ -345,7 +349,12 @@ public class XMLPullFeedParser implements IFeedParser {
 						break;
 					case XmlPullParser.START_TAG:
 						name = parser.getName();
-						if (name.equalsIgnoreCase(RECORD)){
+						
+						if(name.equalsIgnoreCase(VERSION)){
+							version = Integer.parseInt(parser.nextText());
+						} 
+						
+						else if (name.equalsIgnoreCase(RECORD)){
 							currentStopTime = new StopTime();
 						} else if (currentStopTime != null){
 							if (name.equalsIgnoreCase(TRIP_ID)){
@@ -387,17 +396,18 @@ public class XMLPullFeedParser implements IFeedParser {
 			}
 
 			// return the stop times
-			return stopTimeMap;
+			return new VersionedCollection<Map<Integer, List<StopTime>>>(stopTimeMap, version);
 		}
 	}
 
 
-	private class ParseStopsTask extends AsyncTask<InputStream, Void, Map<Integer, Stop>> {
+	private class ParseStopsTask extends AsyncTask<InputStream, Void, VersionedCollection<Map<Integer, Stop>>> {
 
 		@Override
-		protected Map<Integer, Stop> doInBackground(InputStream... inputStreams) {
+		protected VersionedCollection<Map<Integer, Stop>> doInBackground(InputStream... inputStreams) {
 			// list of stop times
 			Map<Integer, Stop> stops = null;
+			int version = 1; // default
 
 			XmlPullParser parser = Xml.newPullParser();
 			try {
@@ -416,7 +426,11 @@ public class XMLPullFeedParser implements IFeedParser {
 							break;
 						case XmlPullParser.START_TAG:
 							name = parser.getName();
-							if (name.equalsIgnoreCase(RECORD)){
+							
+							if(name.equals(VERSION)){
+								version = Integer.parseInt(parser.nextText());
+							}
+							else if (name.equalsIgnoreCase(RECORD)){
 								currentStop = new Stop();
 							} else if (currentStop != null){
 								if (name.equalsIgnoreCase(STOP_ID)){
@@ -446,17 +460,18 @@ public class XMLPullFeedParser implements IFeedParser {
 			}
 
 			// return the stops
-			return stops;
+			return new VersionedCollection<Map<Integer, Stop>>(stops, version);
 		}
 	}
 
 
-	private class ParseTripsTask extends AsyncTask<InputStream, Void, List<Trip>> {
+	private class ParseTripsTask extends AsyncTask<InputStream, Void, VersionedCollection<List<Trip>>> {
 
 		@Override
-		protected List<Trip> doInBackground(InputStream... inputStreams) {
+		protected VersionedCollection<List<Trip>> doInBackground(InputStream... inputStreams) {
 			// list of trips
 			List<Trip> trips = null;
+			int version = 1; // default
 
 			XmlPullParser parser = Xml.newPullParser();
 			try {
@@ -473,7 +488,11 @@ public class XMLPullFeedParser implements IFeedParser {
 							break;
 						case XmlPullParser.START_TAG:
 							name = parser.getName();
-							if (name.equalsIgnoreCase(RECORD)){
+							
+							if(name.equalsIgnoreCase(VERSION)){
+								version = Integer.parseInt(parser.nextText());
+							}
+							else if (name.equalsIgnoreCase(RECORD)){
 								currentTrip = new Trip();
 							} else if (currentTrip != null){
 								if (name.equalsIgnoreCase(ROUTE_ID)){
@@ -505,17 +524,18 @@ public class XMLPullFeedParser implements IFeedParser {
 			}
 
 			// return the trips
-			return trips;
+			return new VersionedCollection<List<Trip>>(trips, version);
 		}
 	}
 
 
-	private class ParseRoutesTask extends AsyncTask<InputStream, Void, List<Route>> {
+	private class ParseRoutesTask extends AsyncTask<InputStream, Void, VersionedCollection<List<Route>>> {
 
 		@Override
-		protected List<Route> doInBackground(InputStream... inputStreams) {
+		protected VersionedCollection<List<Route>> doInBackground(InputStream... inputStreams) {
 			// list of trips
 			List<Route> routes = null;
+			int version = 1; //default
 
 			XmlPullParser parser = Xml.newPullParser();
 			try {
@@ -532,7 +552,10 @@ public class XMLPullFeedParser implements IFeedParser {
 							break;
 						case XmlPullParser.START_TAG:
 							name = parser.getName();
-							if (name.equalsIgnoreCase(RECORD)){
+							if(name.equalsIgnoreCase(VERSION)){
+								version = Integer.parseInt(parser.nextText());
+							}
+							else if (name.equalsIgnoreCase(RECORD)){
 								currentRoute = new Route();
 							} else if (currentRoute != null){
 								if (name.equalsIgnoreCase(ROUTE_ID)){
@@ -560,7 +583,7 @@ public class XMLPullFeedParser implements IFeedParser {
 			}
 
 			// return the routes
-			return routes;
+			return new VersionedCollection<List<Route>>(routes, version);
 		}
 	}
 
