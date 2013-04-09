@@ -18,13 +18,11 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 public class StopTimesActivity extends Activity {
-	
-	private DataLoader dataLoader;
 
 	// all the data
 	private Map<Integer, List<StopTime>> stopTimes;
 	private Map<Integer, Stop> stops;
-	
+
 	// data relating to this trip
 	private int routeId;
 	private int tripId;
@@ -33,22 +31,21 @@ public class StopTimesActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         Log.write("started stop times activity");
 
         // load data
-        dataLoader = new DataLoader(this);
-        stopTimes = dataLoader.loadStopTimes();       
-        stops = dataLoader.loadStops();
-        
+        stopTimes = DataHolder.getStopTimes();
+        stops = DataHolder.getStops();
+
 		// work out what trip they want to display
 		Intent intent = getIntent();
 		this.routeId = intent.getIntExtra(RoutesActivity.ROUTE_ID, 0);
 		this.tripId =  intent.getIntExtra(RoutesActivity.TRIP_ID, 0);
-		        
+
 		// find stop times
 		findStopTimes();
-		
+
         // display stop times
         displayTripStopTimes();
     }
@@ -63,12 +60,12 @@ public class StopTimesActivity extends Activity {
 
 
 	private void findStopTimes(){
-		// build list to display 
+		// build list to display
         stopsList = new ArrayList<Map<String, Object>>();
         Map<String, Object> map = null;
-        
+
         Log.write("total number of stops is " + stopTimes.size());
-        
+
         List<StopTime> applicableStopTimes = stopTimes.get(tripId);
         Collections.sort(applicableStopTimes);
         for(StopTime s: applicableStopTimes){
@@ -79,18 +76,18 @@ public class StopTimesActivity extends Activity {
         	map.put("departure_time", s.getDepartureTime());
         	stopsList.add(map);
         }
-        
+
         Log.write("Number of stops found is " + stopsList.size());
 	}
-	
-	
+
+
 	private void displayTripStopTimes(){
         setContentView(R.layout.activity_stop_times);
-        
+
         // set title
         TextView t=new TextView(this);
         t=(TextView)findViewById(R.id.title);
-        t.setText("Stop times for route " + routeId + ", trip " + tripId);  
+        t.setText("Stop times for route " + routeId + ", trip " + tripId);
 
         // display the stops
         String[] from = new String[]{"stop_name", "departure_time"};

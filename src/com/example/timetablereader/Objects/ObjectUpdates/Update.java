@@ -21,11 +21,19 @@ public abstract class Update<T, C> {
 		this.type = type;
 	}
 
-	public abstract void applyEdit(C collection);
+	public void applyUpdate(C collection){
+		switch(type){
+			case Add:	applyAdd(collection);
+			case Delete: applyDelete(collection);
+			case Edit: applyEdit(collection);
+		}
+	}
 
-	public abstract void applyDelete(C collection);
+	protected abstract void applyEdit(C collection);
 
-	public abstract void applyAdd(C collection);
+	protected abstract void applyDelete(C collection);
+
+	protected abstract void applyAdd(C collection);
 
 
 }

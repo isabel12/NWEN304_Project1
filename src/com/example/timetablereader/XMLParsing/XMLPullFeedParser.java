@@ -82,6 +82,7 @@ public class XMLPullFeedParser extends BaseFeedParser {
 	@Override
 	public Map<String, Integer> parseFileVersionNumbers(InputStream inputStream){
 		try {
+			Log.d("TimetableReader", "making parserVersions task, and executing");
 			AsyncTask<InputStream, Void, Map<String, Integer>> parseTask = new ParseVersionsTask().execute(inputStream);
 			return parseTask.get();
 		} catch (InterruptedException e) {
@@ -91,8 +92,6 @@ public class XMLPullFeedParser extends BaseFeedParser {
 			// TODO Auto-generated catch block
 			throw new RuntimeException(e);
 		}
-
-
 	}
 
 

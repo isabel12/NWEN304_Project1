@@ -22,8 +22,7 @@ public class DisplayTripsActivity extends ListActivity {
 
 
 	private List<Trip> trips;
-	private DataLoader dataLoader;
-	
+
 	private int routeId;
 	private boolean outbound;
 	private List<String> releventTrips;
@@ -35,12 +34,10 @@ public class DisplayTripsActivity extends ListActivity {
 		setContentView(R.layout.activity_display_trips);
 
 		// load trips
-		dataLoader = new DataLoader(this);
-		
 		Log.write("loading trips");
-		trips = dataLoader.loadTrips();
+		trips = DataHolder.getTrips();
 		Log.write("loaded trips");
-		
+
 		// work out what trip they want to display
 		Intent intent = getIntent();
 		this.routeId = intent.getIntExtra(RoutesActivity.ROUTE_ID, 0);
@@ -59,8 +56,8 @@ public class DisplayTripsActivity extends ListActivity {
 		return true;
 	}
 
-	
-	private void findTrips(){	
+
+	private void findTrips(){
 		// find relevent trips
 		releventTrips = new ArrayList<String>();
     	for (Trip trip : trips){
@@ -74,11 +71,11 @@ public class DisplayTripsActivity extends ListActivity {
 
 	private void displayTrips(){
 		// display the title
-		TextView title = (TextView)findViewById(R.id.trips_title);		
+		TextView title = (TextView)findViewById(R.id.trips_title);
 		String titleText = String.format("%s trips for route %d", outbound ? "Outbound": "Inbound", routeId);
 		title.setText(titleText);
-		
-		
+
+
     	// display them
     	ArrayAdapter<String> adapter =
     		new ArrayAdapter<String>(this, R.layout.trip_row,releventTrips);
@@ -86,21 +83,21 @@ public class DisplayTripsActivity extends ListActivity {
         myList.setAdapter(adapter);
 	}
 
-	
+
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
-		
+
 		// get the trip that was selected
 		int tripId = Integer.parseInt((String)getListView().getItemAtPosition(position));
-		
+
 		// set up the intent
 		Intent intent = new Intent(this, StopTimesActivity.class);
 		intent.putExtra(RoutesActivity.ROUTE_ID, routeId);
 		intent.putExtra(RoutesActivity.TRIP_ID, tripId);
     	intent.putExtra(RoutesActivity.OUTBOUND, outbound);
-			
+
 		this.startActivity(intent);
 	}
-	
+
 }

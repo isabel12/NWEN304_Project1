@@ -23,14 +23,14 @@ public class FeedLoader {
 	 */
 	public InputStream getFeedInputStream(String feedUrl) {
 		URL url = null;
-		
+
 		// parse the url
 		try {
 			url = new URL(feedUrl);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
-		
+
 		// get the input stream
 		AsyncTask<URL, Void, InputStream> task = new GetInputStream().execute(url);
 		try {
@@ -41,7 +41,7 @@ public class FeedLoader {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	private class GetInputStream extends AsyncTask<URL, Void, InputStream> {
 
 		@Override
@@ -53,6 +53,6 @@ public class FeedLoader {
 			}
 		}
 	}
-	
-	
+
+
 }

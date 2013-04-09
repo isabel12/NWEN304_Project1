@@ -29,21 +29,19 @@ public class RoutesActivity extends Activity {
 	public static final String OUTBOUND = "com.example.timetablereader.RoutesActivity.outbound";
 	public static final String TRIP_ID = "com.example.timetablereader.RoutesActivity.tripId";
 
-	private DataLoader dataLoader;
 	private List<Route> routes;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		this.dataLoader = new DataLoader(this);
 		setContentView(R.layout.activity_routes);
 
 		// load data
-		loadData();
+		DataHolder.initialise(this);
+		this.routes = DataHolder.getRoutes();
 
 		// load view
 		addItemsToRoutesSpinner();
-
 	}
 
 	@Override
@@ -81,11 +79,6 @@ public class RoutesActivity extends Activity {
     	// start the new activity
     	startActivity(intent);
     }
-
-
-	private void loadData(){
-		this.routes = dataLoader.loadRoutes();
-	}
 
 	private void addItemsToRoutesSpinner(){
 		Spinner spinner = (Spinner) findViewById(R.id.routes_spinner);
