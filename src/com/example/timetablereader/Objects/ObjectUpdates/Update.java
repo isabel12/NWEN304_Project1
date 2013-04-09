@@ -2,6 +2,8 @@ package com.example.timetablereader.Objects.ObjectUpdates;
 
 import java.util.List;
 
+import android.util.Log;
+
 import com.example.timetablereader.Objects.Route;
 
 /**
@@ -23,9 +25,12 @@ public abstract class Update<T, C> {
 
 	public void applyUpdate(C collection){
 		switch(type){
-			case Add:	applyAdd(collection);
-			case Delete: applyDelete(collection);
-			case Edit: applyEdit(collection);
+		case Add:	applyAdd(collection);
+		break;
+		case Delete: applyDelete(collection);
+		break;
+		case Edit: applyEdit(collection);
+		break;
 		}
 	}
 

@@ -23,6 +23,7 @@ import com.example.timetablereader.Objects.Route;
 import com.example.timetablereader.Objects.Stop;
 import com.example.timetablereader.Objects.StopTime;
 import com.example.timetablereader.Objects.Trip;
+import com.example.timetablereader.Objects.ObjectUpdates.RouteUpdate;
 
 
 /**
@@ -38,15 +39,16 @@ public class DataLoader {
 	public static final String TRIPS_URL = "http://homepages.ecs.vuw.ac.nz/~broomeisab/trips.xml";
 
 	public static final String FILE_VERSIONS_URL = "http://homepages.ecs.vuw.ac.nz/~broomeisab/file_versions1.xml";
+	public static final String ROUTE_UPDATES_URL = "http://homepages.ecs.vuw.ac.nz/~broomeisab/routes_updates.xml";
 
-	private FeedLoader feedLoader;
+	private FeedInputStreamLoader feedLoader;
 	private IFeedParser parser;
 	private Activity activity;
 
 	public DataLoader(Activity activity){
 		this.activity = activity;
 		this.parser = new XMLPullFeedParser();
-		this.feedLoader = new FeedLoader();
+		this.feedLoader = new FeedInputStreamLoader();
 	}
 
 	// return them sorted by TripId, and then by stop sequence.
@@ -245,31 +247,44 @@ public class DataLoader {
 
 	}
 
+
+	public List<RouteUpdate> loadRouteUpdates(int currentVersion){
+		Log.d("TimetableReader", "Getting route updates input stream from online");
+		InputStream inputStream = feedLoader.getFeedInputStream(ROUTE_UPDATES_URL);
+
+		Log.d("TimetableReader", "Reading route updates");
+		List<RouteUpdate> updates = parser.parseRouteUpdates(inputStream, currentVersion);
+		Log.d("TimetableReader", "Read route updates");
+
+		return updates;
+
+	}
+
 	private String writeRoutesToXml(List<Route> routes){
 		XmlSerializer serializer = Xml.newSerializer();
 		StringWriter writer = new StringWriter();
 		try {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
-			serializer.startTag("", BaseFeedParser.DOCUMENT);
+			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
 			for (Route r: routes){
-				serializer.startTag("", BaseFeedParser.RECORD);
+				serializer.startTag("", XMLPullFeedParser.RECORD);
 
-				serializer.startTag("", BaseFeedParser.ROUTE_ID);
+				serializer.startTag("", XMLPullFeedParser.ROUTE_ID);
 				serializer.text("" + r.getRouteId());
-				serializer.endTag("", BaseFeedParser.ROUTE_ID);
+				serializer.endTag("", XMLPullFeedParser.ROUTE_ID);
 
-				serializer.startTag("", BaseFeedParser.AGENCY_ID);
+				serializer.startTag("", XMLPullFeedParser.AGENCY_ID);
 				serializer.text(r.getAgency());
-				serializer.endTag("", BaseFeedParser.AGENCY_ID);
+				serializer.endTag("", XMLPullFeedParser.AGENCY_ID);
 
-				serializer.startTag("", BaseFeedParser.ROUTE_NAME);
+				serializer.startTag("", XMLPullFeedParser.ROUTE_NAME);
 				serializer.text("" + r.getName());
-				serializer.endTag("", BaseFeedParser.ROUTE_NAME);
+				serializer.endTag("", XMLPullFeedParser.ROUTE_NAME);
 
-				serializer.endTag("", BaseFeedParser.RECORD);
+				serializer.endTag("", XMLPullFeedParser.RECORD);
 			}
-			serializer.endTag("", BaseFeedParser.DOCUMENT);
+			serializer.endTag("", XMLPullFeedParser.DOCUMENT);
 			serializer.endDocument();
 			return writer.toString();
 		} catch (Exception e) {
@@ -283,25 +298,25 @@ public class DataLoader {
 		try {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
-			serializer.startTag("", BaseFeedParser.DOCUMENT);
+			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
 			for (Trip t: trips){
-				serializer.startTag("", BaseFeedParser.RECORD);
+				serializer.startTag("", XMLPullFeedParser.RECORD);
 
-				serializer.startTag("", BaseFeedParser.ROUTE_ID);
+				serializer.startTag("", XMLPullFeedParser.ROUTE_ID);
 				serializer.text("" + t.getRouteId());
-				serializer.endTag("", BaseFeedParser.ROUTE_ID);
+				serializer.endTag("", XMLPullFeedParser.ROUTE_ID);
 
-				serializer.startTag("", BaseFeedParser.TRIP_ID);
+				serializer.startTag("", XMLPullFeedParser.TRIP_ID);
 				serializer.text(t.getTripId() + "");
-				serializer.endTag("", BaseFeedParser.TRIP_ID);
+				serializer.endTag("", XMLPullFeedParser.TRIP_ID);
 
-				serializer.startTag("", BaseFeedParser.DIRECTION_ID);
+				serializer.startTag("", XMLPullFeedParser.DIRECTION_ID);
 				serializer.text(t.isOutbound()? "0":"1");
-				serializer.endTag("", BaseFeedParser.DIRECTION_ID);
+				serializer.endTag("", XMLPullFeedParser.DIRECTION_ID);
 
-				serializer.endTag("", BaseFeedParser.RECORD);
+				serializer.endTag("", XMLPullFeedParser.RECORD);
 			}
-			serializer.endTag("", BaseFeedParser.DOCUMENT);
+			serializer.endTag("", XMLPullFeedParser.DOCUMENT);
 			serializer.endDocument();
 			return writer.toString();
 		} catch (Exception e) {
@@ -315,29 +330,29 @@ public class DataLoader {
 		try {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
-			serializer.startTag("", BaseFeedParser.DOCUMENT);
+			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
 			for (Stop st: stops){
-				serializer.startTag("", BaseFeedParser.RECORD);
+				serializer.startTag("", XMLPullFeedParser.RECORD);
 
-				serializer.startTag("", BaseFeedParser.STOP_ID);
+				serializer.startTag("", XMLPullFeedParser.STOP_ID);
 				serializer.text("" + st.getStopId());
-				serializer.endTag("", BaseFeedParser.STOP_ID);
+				serializer.endTag("", XMLPullFeedParser.STOP_ID);
 
-				serializer.startTag("", BaseFeedParser.STOP_NAME);
+				serializer.startTag("", XMLPullFeedParser.STOP_NAME);
 				serializer.text(st.getStopName());
-				serializer.endTag("", BaseFeedParser.STOP_NAME);
+				serializer.endTag("", XMLPullFeedParser.STOP_NAME);
 
-				serializer.startTag("", BaseFeedParser.STOP_LAT);
+				serializer.startTag("", XMLPullFeedParser.STOP_LAT);
 				serializer.text("" + st.getStopLat());
-				serializer.endTag("", BaseFeedParser.STOP_LAT);
+				serializer.endTag("", XMLPullFeedParser.STOP_LAT);
 
-				serializer.startTag("", BaseFeedParser.STOP_LON);
+				serializer.startTag("", XMLPullFeedParser.STOP_LON);
 				serializer.text("" + st.getStopLon());
-				serializer.endTag("", BaseFeedParser.STOP_LON);
+				serializer.endTag("", XMLPullFeedParser.STOP_LON);
 
-				serializer.endTag("", BaseFeedParser.RECORD);
+				serializer.endTag("", XMLPullFeedParser.RECORD);
 			}
-			serializer.endTag("", BaseFeedParser.DOCUMENT);
+			serializer.endTag("", XMLPullFeedParser.DOCUMENT);
 			serializer.endDocument();
 			return writer.toString();
 		} catch (Exception e) {
@@ -351,33 +366,33 @@ public class DataLoader {
 		try {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
-			serializer.startTag("", BaseFeedParser.DOCUMENT);
+			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
 			for (StopTime st: stopTimes){
-				serializer.startTag("", BaseFeedParser.RECORD);
+				serializer.startTag("", XMLPullFeedParser.RECORD);
 
-				serializer.startTag("", BaseFeedParser.TRIP_ID);
+				serializer.startTag("", XMLPullFeedParser.TRIP_ID);
 				serializer.text("" + st.getTripId());
-				serializer.endTag("", BaseFeedParser.TRIP_ID);
+				serializer.endTag("", XMLPullFeedParser.TRIP_ID);
 
-				serializer.startTag("", BaseFeedParser.ARRIVAL_TIME);
+				serializer.startTag("", XMLPullFeedParser.ARRIVAL_TIME);
 				serializer.text("" + st.getArrivalTime());
-				serializer.endTag("", BaseFeedParser.ARRIVAL_TIME);
+				serializer.endTag("", XMLPullFeedParser.ARRIVAL_TIME);
 
-				serializer.startTag("", BaseFeedParser.DEPARTURE_TIME);
+				serializer.startTag("", XMLPullFeedParser.DEPARTURE_TIME);
 				serializer.text("" + st.getDepartureTime());
-				serializer.endTag("", BaseFeedParser.DEPARTURE_TIME);
+				serializer.endTag("", XMLPullFeedParser.DEPARTURE_TIME);
 
-				serializer.startTag("", BaseFeedParser.STOP_ID);
+				serializer.startTag("", XMLPullFeedParser.STOP_ID);
 				serializer.text("" + st.getStopId());
-				serializer.endTag("", BaseFeedParser.STOP_ID);
+				serializer.endTag("", XMLPullFeedParser.STOP_ID);
 
-				serializer.startTag("", BaseFeedParser.STOP_SEQUENCE);
+				serializer.startTag("", XMLPullFeedParser.STOP_SEQUENCE);
 				serializer.text("" + st.getStopSequence());
-				serializer.endTag("", BaseFeedParser.STOP_SEQUENCE);
+				serializer.endTag("", XMLPullFeedParser.STOP_SEQUENCE);
 
-				serializer.endTag("", BaseFeedParser.RECORD);
+				serializer.endTag("", XMLPullFeedParser.RECORD);
 			}
-			serializer.endTag("", BaseFeedParser.DOCUMENT);
+			serializer.endTag("", XMLPullFeedParser.DOCUMENT);
 			serializer.endDocument();
 			return writer.toString();
 		} catch (Exception e) {

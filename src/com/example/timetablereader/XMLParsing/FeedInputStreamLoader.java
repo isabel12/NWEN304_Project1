@@ -13,7 +13,7 @@ import android.os.AsyncTask;
  * @author Izzi
  *
  */
-public class FeedLoader {
+public class FeedInputStreamLoader {
 
 
 	/**

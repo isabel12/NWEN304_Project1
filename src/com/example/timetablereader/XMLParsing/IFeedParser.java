@@ -10,6 +10,7 @@ import com.example.timetablereader.Objects.Route;
 import com.example.timetablereader.Objects.Stop;
 import com.example.timetablereader.Objects.StopTime;
 import com.example.timetablereader.Objects.Trip;
+import com.example.timetablereader.Objects.ObjectUpdates.RouteUpdate;
 
 public interface IFeedParser {
 
@@ -22,7 +23,9 @@ public interface IFeedParser {
 	List<Route> parseRoutes(InputStream inputStream);
 
 	Map<String, Integer> parseFileVersionNumbers(InputStream inputStream);
-	
-	
+
+	List<RouteUpdate> parseRouteUpdates(InputStream inputStream, int currentVersion);
+
+
 
 }

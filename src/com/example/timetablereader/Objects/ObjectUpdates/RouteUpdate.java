@@ -30,20 +30,27 @@ public class RouteUpdate extends Update<Route, List<Route>> {
 		// edit the fields as necessary
 		if (name != null){
 			route.setName(name);
-			Log.d("TimetableReader", "edited route name: " + route);
+			Log.d("TimetableReader", "edited route name: " + name);
 		}
 
 		if (agency != null){
 			route.setAgency(agency);
-			Log.d("TimetableReader", "edited route agency: " + route);
+			Log.d("TimetableReader", "edited route agency: " + agency);
 		}
 	}
 
 	@Override
 	protected void applyDelete(List<Route> collection) {
 		// get the stop out of the collection
-		Route removed = collection.remove(id);
-		Log.d("TimetableReader", "removed route: " + removed);
+		Route route = null;
+		for(Route r: collection){
+			if (r.getRouteId() == id){
+				route = r;
+			}
+		}
+
+		collection.remove(route);
+		Log.d("TimetableReader", "removed route: " + route);
 	}
 
 	@Override
@@ -53,10 +60,15 @@ public class RouteUpdate extends Update<Route, List<Route>> {
 		route.setRouteId(id);
 		route.setName(name);
 		route.setAgency(agency);
-
 		collection.add(route);
 		Log.d("TimetableReader", "added new route: " + route);
 
+	}
+
+	@Override
+	public String toString() {
+		return "RouteUpdate [name=" + name + ", agency=" + agency + ", id="
+				+ id + ", type=" + type + "]";
 	}
 
 
