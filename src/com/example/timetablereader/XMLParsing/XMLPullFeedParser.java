@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,9 +127,9 @@ public class XMLPullFeedParser implements IFeedParser {
 		}
 	}
 
-	public List<RouteUpdate> parseRouteUpdates(InputStream inputStream, int currentVersion){
+	public List<List<RouteUpdate>> parseRouteUpdates(InputStream inputStream, int currentVersion){
 		try {
-			AsyncTask<InputStream, Void, List<RouteUpdate>> parseTask = new ParseRouteUpdatesTask(currentVersion).execute(inputStream);
+			AsyncTask<InputStream, Void, List<List<RouteUpdate>>> parseTask = new ParseRouteUpdatesTask(currentVersion).execute(inputStream);
 			return parseTask.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -144,19 +145,22 @@ public class XMLPullFeedParser implements IFeedParser {
 	 * @author broomeisab
 	 *
 	 */
-	private class ParseRouteUpdatesTask extends AsyncTask<InputStream, Void, List<RouteUpdate>> {
-		private int currentVersion;
+	private class ParseRouteUpdatesTask extends AsyncTask<InputStream, Void, List<List<RouteUpdate>>> {
+		private int currentSystemVersion; // the verison on the device
 
 		ParseRouteUpdatesTask(int currentVersion){
-			this.currentVersion = currentVersion;
+			this.currentSystemVersion = currentVersion;
 		}
 
 
 		@Override
-		protected List<RouteUpdate> doInBackground(
+		protected List<List<RouteUpdate>> doInBackground(
 				InputStream... params) {
-			// list of stop times
-			ArrayList<RouteUpdate> updates = null;
+
+
+			// list of updates
+			ArrayList<RouteUpdate> versionUpdates = null;
+			List<List<RouteUpdate>> allUpdates = null;
 
 			XmlPullParser parser = Xml.newPullParser();
 			try {
@@ -168,6 +172,7 @@ public class XMLPullFeedParser implements IFeedParser {
 				boolean record = false;
 
 				// fields to make the Update
+				int parsedVersion = -1; // version currently being parsed
 				RouteUpdate update = null;
 				int id = -1;
 				UpdateType updateType = null;
@@ -178,7 +183,7 @@ public class XMLPullFeedParser implements IFeedParser {
 				while (eventType != XmlPullParser.END_DOCUMENT && !done){
 					switch (eventType){
 					case XmlPullParser.START_DOCUMENT:
-						updates = new ArrayList<RouteUpdate>();
+						allUpdates = new ArrayList<List<RouteUpdate>>();
 						break;
 					case XmlPullParser.START_TAG:
 						String name = parser.getName();
@@ -190,13 +195,36 @@ public class XMLPullFeedParser implements IFeedParser {
 							agency = null;
 							routeName = null;
 						} else if (record == true){
-							// parsing update values
+
 							if (name.equalsIgnoreCase(VERSION)){
+								// get the version of the record
 								int version = Integer.parseInt(parser.nextText());
-								if(version == currentVersion){
-									done = true;
-									break;
+
+								// if its the first record, save version, make a new list
+								if (parsedVersion == -1){
+									parsedVersion = version;
+									versionUpdates = new ArrayList<RouteUpdate>();
 								}
+
+								// if we are looking at a different version now
+								else if (version < parsedVersion){
+									Log.d("", "version=" + version + ", parsedVersion=" + parsedVersion);
+									//put current list into map
+									allUpdates.add(versionUpdates);
+
+									// if that was the last version update we wanted, break
+									if(version == currentSystemVersion){
+										done = true;
+										break;
+									}
+									// otherwise make a new list
+									else {
+										parsedVersion = version;
+										versionUpdates = new ArrayList<RouteUpdate>();
+									}
+								}
+
+
 							} else if (name.equalsIgnoreCase(TYPE)){
 								String type = parser.nextText();
 								if(type.equals(EDIT))
@@ -228,8 +256,8 @@ public class XMLPullFeedParser implements IFeedParser {
 							update.agency = agency;
 							update.name = routeName;
 
-							// add update
-							updates.add(update);
+							// add update to current list of updates
+							versionUpdates.add(update);
 
 							// reset record
 							record = false;
@@ -238,6 +266,10 @@ public class XMLPullFeedParser implements IFeedParser {
 
 						} else if (name.equalsIgnoreCase(DOCUMENT)){
 							done = true;
+
+							// add the last list if not done already
+							if (!allUpdates.contains(versionUpdates))
+								allUpdates.add(versionUpdates);
 						}
 						break;
 					}
@@ -247,8 +279,11 @@ public class XMLPullFeedParser implements IFeedParser {
 				throw new RuntimeException(e);
 			}
 
+			// reverse allUpdates so earliest version is at the start, and latest at the end
+			Collections.reverse(allUpdates);
+
 			// return the version numbers
-			return updates;
+			return allUpdates;
 		}
 	}
 
@@ -278,13 +313,13 @@ public class XMLPullFeedParser implements IFeedParser {
 				// fields to save
 				String filename = null;
 				int version = 1;
-				
+
 				while (eventType != XmlPullParser.END_DOCUMENT && !done){
 
 
 					switch (eventType){
 					case XmlPullParser.START_DOCUMENT:
-						versionNumbers = new HashMap<String, Integer>();				
+						versionNumbers = new HashMap<String, Integer>();
 						break;
 					case XmlPullParser.START_TAG:
 						String name = parser.getName();
@@ -349,11 +384,11 @@ public class XMLPullFeedParser implements IFeedParser {
 						break;
 					case XmlPullParser.START_TAG:
 						name = parser.getName();
-						
+
 						if(name.equalsIgnoreCase(VERSION)){
 							version = Integer.parseInt(parser.nextText());
-						} 
-						
+						}
+
 						else if (name.equalsIgnoreCase(RECORD)){
 							currentStopTime = new StopTime();
 						} else if (currentStopTime != null){
@@ -426,7 +461,7 @@ public class XMLPullFeedParser implements IFeedParser {
 							break;
 						case XmlPullParser.START_TAG:
 							name = parser.getName();
-							
+
 							if(name.equals(VERSION)){
 								version = Integer.parseInt(parser.nextText());
 							}
@@ -488,7 +523,7 @@ public class XMLPullFeedParser implements IFeedParser {
 							break;
 						case XmlPullParser.START_TAG:
 							name = parser.getName();
-							
+
 							if(name.equalsIgnoreCase(VERSION)){
 								version = Integer.parseInt(parser.nextText());
 							}

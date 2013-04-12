@@ -249,16 +249,15 @@ public class DataLoader {
 	}
 
 
-	public List<RouteUpdate> loadRouteUpdates(int currentVersion){
+	public List<List<RouteUpdate>> loadRouteUpdates(int currentVersion){
 		Log.d("TimetableReader", "Getting route updates input stream from online");
 		InputStream inputStream = feedLoader.getFeedInputStream(ROUTE_UPDATES_URL);
 
 		Log.d("TimetableReader", "Reading route updates");
-		List<RouteUpdate> updates = parser.parseRouteUpdates(inputStream, currentVersion);
+		List<List<RouteUpdate>> updates = parser.parseRouteUpdates(inputStream, currentVersion);
 		Log.d("TimetableReader", "Read route updates");
 
 		return updates;
-
 	}
 
 	public String writeRoutesToXml(List<Route> routes, int version){
@@ -268,12 +267,12 @@ public class DataLoader {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
 			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
-			
+
 			// put version number in
 			serializer.startTag("", XMLPullFeedParser.VERSION);
 			serializer.text(version + "");
 			serializer.endTag("", XMLPullFeedParser.VERSION);
-			
+
 			for (Route r: routes){
 				serializer.startTag("", XMLPullFeedParser.RECORD);
 
@@ -306,12 +305,12 @@ public class DataLoader {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
 			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
-			
+
 			// put version number in
 			serializer.startTag("", XMLPullFeedParser.VERSION);
 			serializer.text(version + "");
 			serializer.endTag("", XMLPullFeedParser.VERSION);
-			
+
 			for (Trip t: trips){
 				serializer.startTag("", XMLPullFeedParser.RECORD);
 
@@ -344,12 +343,12 @@ public class DataLoader {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
 			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
-			
+
 			// put version number in
 			serializer.startTag("", XMLPullFeedParser.VERSION);
 			serializer.text(version + "");
 			serializer.endTag("", XMLPullFeedParser.VERSION);
-			
+
 			for (Stop st: stops){
 				serializer.startTag("", XMLPullFeedParser.RECORD);
 
@@ -386,12 +385,12 @@ public class DataLoader {
 			serializer.setOutput(writer);
 			serializer.startDocument("UTF-8", true);
 			serializer.startTag("", XMLPullFeedParser.DOCUMENT);
-			
+
 			// put version number in
 			serializer.startTag("", XMLPullFeedParser.VERSION);
 			serializer.text(version + "");
 			serializer.endTag("", XMLPullFeedParser.VERSION);
-			
+
 			for (StopTime st: stopTimes){
 				serializer.startTag("", XMLPullFeedParser.RECORD);
 

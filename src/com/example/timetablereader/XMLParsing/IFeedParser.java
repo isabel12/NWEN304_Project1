@@ -25,7 +25,7 @@ public interface IFeedParser {
 
 	Map<String, Integer> parseFileVersionNumbers(InputStream inputStream);
 
-	List<RouteUpdate> parseRouteUpdates(InputStream inputStream, int currentVersion);
+	List<List<RouteUpdate>> parseRouteUpdates(InputStream inputStream, int currentVersion);
 
 
 

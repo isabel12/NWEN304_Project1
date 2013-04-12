@@ -28,29 +28,38 @@ public class DataHolder {
 	private static VersionedCollection<List<Trip>> trips;
 	private static VersionedCollection<Map<Integer, Stop>> stops;
 	private static VersionedCollection<Map<Integer, List<StopTime>>> stoptimes;
-	
+
 	private static Map<String, Integer> onlineFileVersions;
-	private static List<RouteUpdate> routeUpdates;
+	private static List<List<RouteUpdate>> routeUpdates;
 
 
 	public static void initialise(Activity activity, boolean isConnectedToInternet){
 		dataloader = new DataLoader(activity);
 
+		long startTime = System.currentTimeMillis();
+
 		routes = dataloader.loadRoutes();
 		Log.write("routes is version " + routes.getVersion());
-		
+
 		trips = dataloader.loadTrips();
 		Log.write("trips is version " + trips.getVersion());
-		
+
 		stops = dataloader.loadStops();
 		Log.write("stops is version " + stops.getVersion());
-		
-		//stoptimes = dataloader.loadStopTimes();
-		//Log.write("stoptimes is version " + stoptimes.getVersion());
-		
+
+		stoptimes = dataloader.loadStopTimes();
+		Log.write("stoptimes is version " + stoptimes.getVersion());
+		long stopTime = System.currentTimeMillis();
+
 		if (isConnectedToInternet){
-			checkForFileUpdates();		
+			checkForFileUpdates();
 		}
+
+		long finishTime = System.currentTimeMillis();
+		int loadFilesTime = (int)(stopTime - startTime);
+		int updateFilesTime = (int)(finishTime - stopTime);
+		Log.write("Load files time: " + loadFilesTime + ", update files time: " + updateFilesTime);
+
 	}
 
 	private static void checkForFileUpdates(){
@@ -62,8 +71,8 @@ public class DataHolder {
 
 		// routes
 		int routesCurrVer = routes.getVersion();
-		int routesOnlineVer = onlineFileVersions.get(ROUTES_FILENAME);	
-		
+		int routesOnlineVer = onlineFileVersions.get(ROUTES_FILENAME);
+
 		// if (routesCurrVer < routesOnlineVer){
 		if (true){
 
@@ -71,11 +80,14 @@ public class DataHolder {
 			routeUpdates = dataloader.loadRouteUpdates(routes.getVersion());
 			Log.write("loaded route updates: " + routeUpdates.size());
 
-			// apply updates
-			for(RouteUpdate r: routeUpdates){
-				r.applyUpdate(routes.getCollection());
+			// for each versions set of updates
+			for(List<RouteUpdate> list: routeUpdates){
+				// apply updates
+				for(RouteUpdate r: list){
+					r.applyUpdate(routes.getCollection());
+				}
 			}
-			
+
 			// save new version to internal memory
 			dataloader.writeRoutesToXml(routes.getCollection(), routesOnlineVer);
 		}
